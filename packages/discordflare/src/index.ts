@@ -21,7 +21,7 @@ import {
   type Options,
   optionValues,
 } from '#utils/command';
-import { type Button, message } from '#utils/message';
+import { type Button, message, type ReplyOptions } from '#utils/message';
 import { type Fields, type Modal, fieldValues, modalData } from '#utils/modal';
 import { verify } from '#utils/verify';
 
@@ -33,6 +33,10 @@ const CHAT_INPUT: ApplicationCommandType.ChatInput = 1;
 const BUTTON: ComponentType.Button = 2;
 const PONG: APIInteractionResponsePong = { type: 1 };
 const DEFERRED: APIInteractionResponseDeferredChannelMessageWithSource = { type: 5 };
+const DEFERRED_EPHEMERAL: APIInteractionResponseDeferredChannelMessageWithSource = {
+  type: 5,
+  data: { flags: 64 },
+};
 const PUBLIC_KEY = /^[\da-f]{64}$/i;
 
 /**
@@ -69,7 +73,8 @@ export function option<const T extends keyof OptionValue, const R extends boolea
  * @param config.description The text Discord shows under the name.
  * @param config.options The options, keyed by name, made with {@link option}.
  * @param run Answers the command. It gets the interaction, the typed option values, `reply`
- *   for an answer within 3 seconds and `defer` for work that takes longer.
+ *   for an answer within 3 seconds and `defer` for work that takes longer. Pass
+ *   `{ ephemeral: true }` to either so only the user who ran the command sees the answer.
  * @returns The command, for the `commands` of {@link bot}.
  * @example
  * const greet = command(
@@ -118,19 +123,19 @@ function showModal(form: Modal): Response {
   return Response.json(response);
 }
 
-function reply(content: string, buttons?: Button[]): Response {
+function reply(content: string, options?: ReplyOptions): Response {
   const response: APIInteractionResponseChannelMessageWithSource = {
     type: 4,
-    data: message(content, buttons),
+    data: message(content, options),
   };
 
   return Response.json(response);
 }
 
-function update(content: string, buttons?: Button[]): Response {
+function update(content: string, options?: { buttons?: Button[] }): Response {
   const response: APIInteractionResponseUpdateMessage = {
     type: 7,
-    data: message(content, buttons),
+    data: message(content, options),
   };
 
   return Response.json(response);
@@ -190,7 +195,7 @@ export type Bot = {
  *   `c.send` posts a message to a channel with `DISCORD_TOKEN` and returns an `Error` if Discord refuses.
  * @param config.buttons Answers a click, keyed by the button id given to `reply`. An id such as
  *   `page:2` runs the `page` handler with `c.value` set to `'2'`. `update` edits the message that
- *   holds the button. Pass `[]` as its buttons to remove them.
+ *   holds the button. Pass `{ buttons: [] }` to remove them.
  * @returns The Worker handler. Export it as the default export of your Worker. Pass it to
  *   `gateway({ bot })` to answer interactions that arrive over the gateway too.
  * @example
@@ -242,7 +247,7 @@ export function bot(config: BotConfig): Bot {
 
     const values = optionValues(interaction.data);
 
-    const defer = (work: () => Promise<string>): Response => {
+    const defer = (work: () => Promise<string>, options?: { ephemeral?: boolean }): Response => {
       const where = `/${interaction.data.name}`;
       const finish = async (): Promise<void> => {
         let content = 'Something went wrong.';
@@ -257,7 +262,7 @@ export function bot(config: BotConfig): Bot {
       };
       ctx.waitUntil(finish());
 
-      return Response.json(DEFERRED);
+      return Response.json(options?.ephemeral ? DEFERRED_EPHEMERAL : DEFERRED);
     };
 
     return found.run({

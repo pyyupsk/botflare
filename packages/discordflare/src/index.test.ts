@@ -76,10 +76,12 @@ const slow = command({ name: 'slow', description: 'Answers late' }, (c) =>
 );
 
 const pick = command({ name: 'pick', description: 'Pick one' }, (c) =>
-  c.reply('Yes or no?', [
-    { id: 'yes', label: 'Yes' },
-    { id: 'no', label: 'No' },
-  ]),
+  c.reply('Yes or no?', {
+    buttons: [
+      { id: 'yes', label: 'Yes' },
+      { id: 'no', label: 'No' },
+    ],
+  }),
 );
 
 const feedback = modal(
@@ -119,10 +121,12 @@ const whois = command(
 const app = bot({
   commands: [roll, hello, slow, pick, ask, whois],
   buttons: {
-    yes: (c) => c.update(`${c.interaction.member?.user.username} said yes`, []),
+    yes: (c) => c.update(`${c.interaction.member?.user.username} said yes`, { buttons: [] }),
     open: (c) => c.modal(feedback),
     page: (c) =>
-      c.update(`page ${c.value}`, [{ id: `page:${Number(c.value) + 1}`, label: 'Next' }]),
+      c.update(`page ${c.value}`, {
+        buttons: [{ id: `page:${Number(c.value) + 1}`, label: 'Next' }],
+      }),
   },
   modals: [feedback],
   cron: {
@@ -477,4 +481,27 @@ it('keeps the value from the first colon on, colons included', async () => {
   await app2.fetch(await signed(click('edit:a:b')), env, ctx);
 
   expect(seen).toEqual([undefined, 'a:b']);
+});
+
+it('replies and defers so only the user who ran the command sees it', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => Response.json({})),
+  );
+  const quiet = bot({
+    commands: [
+      command({ name: 'quiet', description: 'Whispers' }, (c) =>
+        c.reply('psst', { ephemeral: true }),
+      ),
+      command({ name: 'quietlater', description: 'Whispers late' }, (c) =>
+        c.defer(async () => 'psst', { ephemeral: true }),
+      ),
+    ],
+  });
+
+  const now = await quiet.fetch(await signed(slash('quiet', [])), env, ctx);
+  const later = await quiet.fetch(await signed(slash('quietlater', [])), env, ctx);
+
+  expect(await now.json()).toEqual({ type: 4, data: { content: 'psst', flags: 64 } });
+  expect(await later.json()).toEqual({ type: 5, data: { flags: 64 } });
 });

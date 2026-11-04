@@ -9,7 +9,7 @@ import type {
   RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord-api-types/v10';
 
-import type { Button } from '#utils/message';
+import type { ReplyOptions } from '#utils/message';
 import type { Modal } from '#utils/modal';
 
 export type OptionValue = {
@@ -37,8 +37,8 @@ export type Context<O extends Options> = {
       ? OptionValue[T]
       : OptionValue[O[K]['type']] | undefined;
   };
-  reply: (content: string, buttons?: Button[]) => Response;
-  defer: (work: () => Promise<string>) => Response;
+  reply: (content: string, options?: ReplyOptions) => Response;
+  defer: (work: () => Promise<string>, options?: { ephemeral?: boolean }) => Response;
   modal: (modal: Modal) => Response;
 };
 

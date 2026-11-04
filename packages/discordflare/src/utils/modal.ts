@@ -4,7 +4,7 @@ import type {
   APIModalSubmitInteraction,
 } from 'discord-api-types/v10';
 
-import type { Button } from '#utils/message';
+import type { ReplyOptions } from '#utils/message';
 
 export type Fields = Record<
   string,
@@ -18,7 +18,7 @@ export type Modal<F extends Fields = Fields> = {
   run(c: {
     interaction: APIModalSubmitInteraction;
     fields: { [K in keyof F]: string };
-    reply: (content: string, buttons?: Button[]) => Response;
+    reply: (content: string, options?: ReplyOptions) => Response;
   }): Response | Promise<Response>;
 };
 
