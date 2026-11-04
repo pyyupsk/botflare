@@ -11,9 +11,11 @@
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "prepare": "nit install",
+    "test": "vitest run",
     "typecheck": "bun check"
   },
   "devDependencies": {
+    "@cloudflare/vitest-plugin": "^1.5.1",
     "@commitlint/cli": "^21.2.4",
     "@commitlint/config-conventional": "^21.2.4",
     "@commitlint/types": "^21.2.3",
@@ -21,7 +23,8 @@
     "@types/bun": "latest",
     "oxfmt": "^0.76.0",
     "oxlint": "^1.91.0",
-    "oxlint-tsgolint": "7"
+    "oxlint-tsgolint": "7",
+    "vitest": "^5.1.0"
   },
   "peerDependencies": {
     "typescript": "^7"
@@ -34,7 +37,7 @@
         }
       },
       "commit-msg": "bun x commitlint --edit $1",
-      "pre-push": "bun run typecheck"
+      "pre-push": "bun run typecheck && bun run test"
     }
   }
 }
