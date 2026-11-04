@@ -138,6 +138,7 @@ function update(content: string, buttons?: Button[]): Response {
 
 type ButtonContext = {
   interaction: APIMessageComponentButtonInteraction;
+  value: string | undefined;
   reply: typeof reply;
   update: typeof update;
   modal: typeof showModal;
@@ -187,8 +188,9 @@ export type Bot = {
  *   Every Cron Trigger then starts the gateway connection or reconnects it.
  * @param config.cron Runs on a Cron Trigger, keyed by the cron expression from your Wrangler config.
  *   `c.send` posts a message to a channel with `DISCORD_TOKEN` and returns an `Error` if Discord refuses.
- * @param config.buttons Answers a click, keyed by the button id given to `reply`. `update` edits the
- *   message that holds the button. Pass `[]` as its buttons to remove them.
+ * @param config.buttons Answers a click, keyed by the button id given to `reply`. An id such as
+ *   `page:2` runs the `page` handler with `c.value` set to `'2'`. `update` edits the message that
+ *   holds the button. Pass `[]` as its buttons to remove them.
  * @returns The Worker handler. Export it as the default export of your Worker. Pass it to
  *   `gateway({ bot })` to answer interactions that arrive over the gateway too.
  * @example
@@ -205,11 +207,15 @@ export function bot(config: BotConfig): Bot {
     ctx: Pick<ExecutionContext, 'waitUntil'>,
   ): Promise<Response> => {
     if (interaction.type === MESSAGE_COMPONENT && interaction.data.component_type === BUTTON) {
-      const clicked = config.buttons?.[interaction.data.custom_id];
+      const id = interaction.data.custom_id;
+      const colon = id.indexOf(':');
+      const name = colon === -1 ? id : id.slice(0, colon);
+      const clicked = config.buttons?.[name];
       if (!clicked) return new Response(null, { status: 404 });
 
       return clicked({
         interaction: interaction as APIMessageComponentButtonInteraction,
+        value: colon === -1 ? undefined : id.slice(colon + 1),
         reply,
         update,
         modal: showModal,

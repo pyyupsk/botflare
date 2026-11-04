@@ -121,6 +121,8 @@ const app = bot({
   buttons: {
     yes: (c) => c.update(`${c.interaction.member?.user.username} said yes`, []),
     open: (c) => c.modal(feedback),
+    page: (c) =>
+      c.update(`page ${c.value}`, [{ id: `page:${Number(c.value) + 1}`, label: 'Next' }]),
   },
   modals: [feedback],
   cron: {
@@ -447,4 +449,32 @@ it('gives user, channel and role options as the objects Discord resolved', async
   const res = await app.fetch(await signed(body), env, ctx);
 
   expect(await res.json()).toEqual({ type: 4, data: { content: 'yu in #general as member' } });
+});
+
+it('runs the handler named before the colon and passes what follows as the value', async () => {
+  const res = await app.fetch(await signed(click('page:2')), env, ctx);
+
+  expect(await res.json()).toMatchObject({
+    type: 7,
+    data: { content: 'page 2', components: [{ components: [{ custom_id: 'page:3' }] }] },
+  });
+});
+
+it('keeps the value from the first colon on, colons included', async () => {
+  const seen: (string | undefined)[] = [];
+  const app2 = bot({
+    commands: [],
+    buttons: {
+      edit: (c) => {
+        seen.push(c.value);
+
+        return c.update('ok');
+      },
+    },
+  });
+
+  await app2.fetch(await signed(click('edit')), env, ctx);
+  await app2.fetch(await signed(click('edit:a:b')), env, ctx);
+
+  expect(seen).toEqual([undefined, 'a:b']);
 });
