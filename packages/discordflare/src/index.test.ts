@@ -70,7 +70,17 @@ const slow = command({ name: 'slow', description: 'Answers late' }, (c) =>
   c.defer(async () => 'done'),
 );
 
-const app = bot({ commands: [roll, hello, slow] });
+const pick = command({ name: 'pick', description: 'Pick one' }, (c) =>
+  c.reply('Yes or no?', [
+    { id: 'yes', label: 'Yes' },
+    { id: 'no', label: 'No' },
+  ]),
+);
+
+const app = bot({
+  commands: [roll, hello, slow, pick],
+  buttons: { yes: (c) => c.update(`${c.interaction.member?.user.username} said yes`, []) },
+});
 
 let ctx = createExecutionContext();
 
@@ -78,6 +88,16 @@ afterEach(() => {
   ctx = createExecutionContext();
   vi.unstubAllGlobals();
 });
+
+function click(id: string): string {
+  return JSON.stringify({
+    type: 3,
+    application_id: '7',
+    token: 'interaction-token',
+    member: { user: { username: 'yu' } },
+    data: { component_type: 2, custom_id: id },
+  });
+}
 
 function slash(name: string, options: { name: string; type: number; value: unknown }[]): string {
   return JSON.stringify({
@@ -182,4 +202,28 @@ it('defers a slow command and edits the answer in when the work is done', async 
     'https://discord.com/api/v10/webhooks/7/interaction-token/messages/@original',
     expect.objectContaining({ method: 'PATCH', body: JSON.stringify({ content: 'done' }) }),
   );
+});
+
+it('replies with buttons', async () => {
+  const res = await app.fetch(await signed(slash('pick', [])), env, ctx);
+
+  expect(await res.json()).toMatchObject({
+    type: 4,
+    data: {
+      content: 'Yes or no?',
+      components: [{ type: 1, components: [{ custom_id: 'yes' }, { custom_id: 'no' }] }],
+    },
+  });
+});
+
+it('runs the handler of the clicked button and updates the message', async () => {
+  const res = await app.fetch(await signed(click('yes')), env, ctx);
+
+  expect(await res.json()).toEqual({ type: 7, data: { content: 'yu said yes', components: [] } });
+});
+
+it('answers 404 for a button without a handler', async () => {
+  const res = await app.fetch(await signed(click('no')), env, ctx);
+
+  expect(res.status).toBe(404);
 });

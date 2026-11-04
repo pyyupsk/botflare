@@ -4,17 +4,23 @@ import type {
   APIInteractionResponseChannelMessageWithSource,
   APIInteractionResponseDeferredChannelMessageWithSource,
   APIInteractionResponsePong,
+  APIInteractionResponseUpdateMessage,
+  APIMessageComponentButtonInteraction,
   ApplicationCommandType,
+  ComponentType,
   InteractionType,
 } from 'discord-api-types/v10';
 
 import { editOriginal } from '#lib/discord';
 import type { Command, Context, Option, OptionValue, Options } from '#utils/command';
+import { type Button, message } from '#utils/message';
 import { verify } from '#utils/verify';
 
 const PING: InteractionType.Ping = 1;
 const APPLICATION_COMMAND: InteractionType.ApplicationCommand = 2;
+const MESSAGE_COMPONENT: InteractionType.MessageComponent = 3;
 const CHAT_INPUT: ApplicationCommandType.ChatInput = 1;
+const BUTTON: ComponentType.Button = 2;
 const PONG: APIInteractionResponsePong = { type: 1 };
 const DEFERRED: APIInteractionResponseDeferredChannelMessageWithSource = { type: 5 };
 const PUBLIC_KEY = /^[\da-f]{64}$/i;
@@ -66,8 +72,21 @@ export function command<const O extends Options = never>(
   };
 }
 
-function reply(content: string): Response {
-  const response: APIInteractionResponseChannelMessageWithSource = { type: 4, data: { content } };
+function reply(content: string, buttons?: Button[]): Response {
+  const response: APIInteractionResponseChannelMessageWithSource = {
+    type: 4,
+    data: message(content, buttons),
+  };
+
+  return Response.json(response);
+}
+
+function update(content: string, buttons?: Button[]): Response {
+  const response: APIInteractionResponseUpdateMessage = {
+    type: 7,
+    data: message(content, buttons),
+  };
+
   return Response.json(response);
 }
 
@@ -79,13 +98,25 @@ function reply(content: string): Response {
  *
  * @param config What the bot answers.
  * @param config.commands The commands, made with {@link command}.
+ * @param config.buttons Answers a click, keyed by the button id given to `reply`. `update` edits the
+ *   message that holds the button. Pass `[]` as its buttons to remove them.
  * @returns The Worker handler. Export it as the default export of your Worker.
  * @example
  * import { bot, command } from 'discordflare';
  *
  * export default bot({ commands: [command({ name: 'ping', description: 'Pong' }, (c) => c.reply('pong'))] });
  */
-export function bot(config: { commands: Command[] }): {
+export function bot(config: {
+  commands: Command[];
+  buttons?: Record<
+    string,
+    (c: {
+      interaction: APIMessageComponentButtonInteraction;
+      reply: typeof reply;
+      update: typeof update;
+    }) => Response | Promise<Response>
+  >;
+}): {
   commands: Command[];
   fetch: (
     request: Request,
@@ -119,6 +150,17 @@ export function bot(config: { commands: Command[] }): {
 
       const interaction = JSON.parse(body) as APIInteraction;
       if (interaction.type === PING) return Response.json(PONG);
+
+      if (interaction.type === MESSAGE_COMPONENT && interaction.data.component_type === BUTTON) {
+        const clicked = config.buttons?.[interaction.data.custom_id];
+        if (!clicked) return new Response(null, { status: 404 });
+
+        return clicked({
+          interaction: interaction as APIMessageComponentButtonInteraction,
+          reply,
+          update,
+        });
+      }
 
       if (interaction.type !== APPLICATION_COMMAND || interaction.data.type !== CHAT_INPUT) {
         return new Response(null, { status: 400 });

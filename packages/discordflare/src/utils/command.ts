@@ -5,6 +5,8 @@ import type {
   RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord-api-types/v10';
 
+import type { Button } from '#utils/message';
+
 export type OptionValue = { string: string; integer: number; number: number; boolean: boolean };
 
 export type Option<T extends keyof OptionValue = keyof OptionValue, R extends boolean = boolean> = {
@@ -22,7 +24,7 @@ export type Context<O extends Options> = {
       ? OptionValue[T]
       : OptionValue[O[K]['type']] | undefined;
   };
-  reply: (content: string) => Response;
+  reply: (content: string, buttons?: Button[]) => Response;
   defer: (work: () => Promise<string>) => Response;
 };
 
