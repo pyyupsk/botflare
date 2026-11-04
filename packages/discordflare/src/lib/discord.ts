@@ -1,4 +1,7 @@
-import type { RESTPutAPIApplicationCommandsJSONBody } from 'discord-api-types/v10';
+import type {
+  RESTPatchAPIWebhookWithTokenMessageJSONBody,
+  RESTPutAPIApplicationCommandsJSONBody,
+} from 'discord-api-types/v10';
 
 import type { SyncEnv } from '#utils/env';
 
@@ -22,4 +25,22 @@ export async function putCommands(
   const saved = (await res.json()) as unknown[];
 
   return [null, saved.length];
+}
+
+export async function editOriginal(
+  applicationId: string,
+  token: string,
+  content: string,
+): Promise<Error | null> {
+  const body: RESTPatchAPIWebhookWithTokenMessageJSONBody = { content };
+
+  const res = await fetch(`${API}/webhooks/${applicationId}/${token}/messages/@original`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) return new Error(`Discord answered ${res.status}: ${await res.text()}`);
+
+  return null;
 }

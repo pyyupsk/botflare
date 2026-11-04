@@ -25,6 +25,7 @@ export type Context<O extends Options> = {
   interaction: APIChatInputApplicationCommandInteraction;
   options: Values<O>;
   reply: (content: string) => Response;
+  defer: (work: () => Promise<string>) => Response;
 };
 
 export type Command<O extends Options = Options> = {

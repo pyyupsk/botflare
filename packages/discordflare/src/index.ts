@@ -2,11 +2,13 @@ import type {
   APIChatInputApplicationCommandInteraction,
   APIInteraction,
   APIInteractionResponseChannelMessageWithSource,
+  APIInteractionResponseDeferredChannelMessageWithSource,
   APIInteractionResponsePong,
   ApplicationCommandType,
   InteractionType,
 } from 'discord-api-types/v10';
 
+import { editOriginal } from '#lib/discord';
 import type { Command, Context, Option, OptionValue, Options } from '#utils/command';
 import { verify } from '#utils/verify';
 
@@ -14,6 +16,7 @@ const PING: InteractionType.Ping = 1;
 const APPLICATION_COMMAND: InteractionType.ApplicationCommand = 2;
 const CHAT_INPUT: ApplicationCommandType.ChatInput = 1;
 const PONG: APIInteractionResponsePong = { type: 1 };
+const DEFERRED: APIInteractionResponseDeferredChannelMessageWithSource = { type: 5 };
 const PUBLIC_KEY = /^[\da-f]{64}$/i;
 
 /**
@@ -25,7 +28,7 @@ export type Env = { DISCORD_PUBLIC_KEY: string };
 /** A Worker handler that answers Discord interactions. Export it as the default export of your Worker. */
 export type Bot = {
   commands: Command[];
-  fetch: (request: Request, env: Env) => Promise<Response>;
+  fetch: (request: Request, env: Env, ctx: ExecutionContext) => Promise<Response>;
 };
 
 /**
@@ -54,7 +57,8 @@ export function option<const T extends keyof OptionValue, const R extends boolea
  * @param config.name The name the user types after `/`.
  * @param config.description The text Discord shows under the name.
  * @param config.options The options, keyed by name, made with {@link option}.
- * @param run Answers the command. It gets the interaction, the typed option values and `reply`.
+ * @param run Answers the command. It gets the interaction, the typed option values, `reply`
+ *   for an answer within 3 seconds and `defer` for work that takes longer.
  * @returns The command, for the `commands` of {@link bot}.
  * @example
  * const greet = command(
@@ -97,7 +101,7 @@ export function bot(config: { commands: Command[] }): Bot {
 
   return {
     commands: config.commands,
-    async fetch(request, env) {
+    async fetch(request, env, ctx) {
       if (request.method !== 'POST') return new Response(null, { status: 405 });
 
       if (!PUBLIC_KEY.test(env.DISCORD_PUBLIC_KEY)) {
@@ -131,10 +135,20 @@ export function bot(config: { commands: Command[] }): Bot {
         (interaction.data.options ?? []).map((o) => [o.name, 'value' in o ? o.value : undefined]),
       );
 
+      const defer = (work: () => Promise<string>): Response => {
+        const answer = async (): Promise<void> => {
+          await editOriginal(interaction.application_id, interaction.token, await work());
+        };
+        ctx.waitUntil(answer());
+
+        return Response.json(DEFERRED);
+      };
+
       return found.run({
         interaction: interaction as APIChatInputApplicationCommandInteraction,
         options: values,
         reply,
+        defer,
       });
     },
   };
