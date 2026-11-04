@@ -361,3 +361,42 @@ it('starts the gateway on every cron tick when the bot names its binding', async
   expect(getByName).toHaveBeenCalledWith('main');
   expect(ensure).toHaveBeenCalledOnce();
 });
+
+it('reports deferred work that fails and edits the answer so it does not stay on thinking', async () => {
+  const fetch = vi.fn(async () => Response.json({}));
+  vi.stubGlobal('fetch', fetch);
+  const onError = vi.fn();
+  const broken = bot({
+    commands: [
+      command({ name: 'broken', description: 'Fails late' }, (c) =>
+        c.defer(async () => {
+          throw new Error('boom');
+        }),
+      ),
+    ],
+    onError,
+  });
+
+  await broken.fetch(await signed(slash('broken', [])), env, ctx);
+  await waitOnExecutionContext(ctx);
+
+  expect(onError).toHaveBeenCalledWith(new Error('boom'), '/broken');
+  expect(fetch).toHaveBeenCalledWith(
+    expect.stringContaining('/messages/@original'),
+    expect.objectContaining({ body: JSON.stringify({ content: 'Something went wrong.' }) }),
+  );
+});
+
+it('reports an edit that Discord refuses', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => new Response('Unknown Webhook', { status: 404 })),
+  );
+  const onError = vi.fn();
+  const late = bot({ commands: [slow], onError });
+
+  await late.fetch(await signed(slash('slow', [])), env, ctx);
+  await waitOnExecutionContext(ctx);
+
+  expect(onError).toHaveBeenCalledWith(new Error('Discord answered 404: Unknown Webhook'), '/slow');
+});

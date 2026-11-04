@@ -29,6 +29,12 @@ const DEFERRED: APIInteractionResponseDeferredChannelMessageWithSource = { type:
 const PUBLIC_KEY = /^[\da-f]{64}$/i;
 
 /**
+ * Gets an error from work that runs after Discord has its answer: the work of `c.defer()`, a gateway
+ * event handler, or a request to Discord that failed. `where` names the command, event or step.
+ */
+export type ErrorHandler = (error: unknown, where: string) => void | Promise<void>;
+
+/**
  * Declares one option of a slash command. The handler reads its value from `c.options`,
  * typed from `type`, and `undefined` when the option is not `required`.
  *
@@ -131,6 +137,8 @@ function update(content: string, buttons?: Button[]): Response {
  * @param config What the bot answers.
  * @param config.commands The commands, made with {@link command}.
  * @param config.modals The modals the bot answers, made with {@link modal}.
+ * @param config.onError Gets errors from deferred work. If that work fails, the bot also edits the
+ *   answer to "Something went wrong." so it does not stay on "thinking…".
  * @param config.gateway The name of the Durable Object binding that holds the class from `gateway()`.
  *   Every Cron Trigger then starts the gateway connection or reconnects it.
  * @param config.cron Runs on a Cron Trigger, keyed by the cron expression from your Wrangler config.
@@ -157,6 +165,7 @@ export function bot(config: {
   >;
   modals?: Modal[];
   gateway?: string;
+  onError?: ErrorHandler;
   cron?: Record<
     string,
     (c: {
@@ -222,8 +231,17 @@ export function bot(config: {
     );
 
     const defer = (work: () => Promise<string>): Response => {
+      const where = `/${interaction.data.name}`;
       const finish = async (): Promise<void> => {
-        await editOriginal(interaction.application_id, interaction.token, await work());
+        let content = 'Something went wrong.';
+        try {
+          content = await work();
+        } catch (error) {
+          await config.onError?.(error, where);
+        }
+
+        const failed = await editOriginal(interaction.application_id, interaction.token, content);
+        if (failed) await config.onError?.(failed, where);
       };
       ctx.waitUntil(finish());
 

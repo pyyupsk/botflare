@@ -6,7 +6,7 @@ import type {
   GatewayReceivePayload,
 } from 'discord-api-types/v10';
 
-import type { bot } from '#index';
+import type { bot, ErrorHandler } from '#index';
 import { interactionCallback, sendMessage } from '#lib/discord';
 import { afterClose, type Session, Shard } from '#utils/shard';
 
@@ -25,6 +25,7 @@ const INTERACTION_CREATE = 'INTERACTION_CREATE' as GatewayDispatchEvents.Interac
  * @param config.intents The gateway intents, a sum of `GatewayIntentBits` values.
  * @param config.presence The status the bot shows while it is connected.
  * @param config.events A handler per dispatch event name. `c.send` posts a message to a channel.
+ * @param config.onError Gets errors from event handlers and from answering interactions.
  * @param config.bot The bot from {@link bot}. Its handlers answer the commands, buttons and modals that
  *   arrive over the gateway, so the application needs no Interactions Endpoint URL.
  * @returns The Durable Object class.
@@ -46,6 +47,7 @@ export function gateway(config: {
   intents: number;
   presence?: GatewayPresenceUpdateData;
   bot?: Pick<ReturnType<typeof bot>, 'answer'>;
+  onError?: ErrorHandler;
   events: {
     [P in GatewayDispatchPayload as P['t']]?: (
       data: P['d'],
@@ -95,8 +97,15 @@ export function gateway(config: {
           if (event.t === INTERACTION_CREATE && config.bot) {
             const { answer } = config.bot;
             const respond = async (): Promise<void> => {
-              const response = await answer(event.d, this.ctx);
-              if (response.ok) await interactionCallback(event.d.id, event.d.token, response);
+              try {
+                const response = await answer(event.d, this.ctx);
+                if (!response.ok) return;
+
+                const failed = await interactionCallback(event.d.id, event.d.token, response);
+                if (failed) await config.onError?.(failed, event.t);
+              } catch (error) {
+                await config.onError?.(error, event.t);
+              }
             };
             this.ctx.waitUntil(respond());
           }
@@ -104,7 +113,16 @@ export function gateway(config: {
           const handler = config.events[event.t] as
             | ((data: unknown, c: { send: typeof send }) => unknown)
             | undefined;
-          this.ctx.waitUntil(Promise.resolve(handler?.(event.d, { send })));
+          if (!handler) return;
+
+          const run = async (): Promise<void> => {
+            try {
+              await handler(event.d, { send });
+            } catch (error) {
+              await config.onError?.(error, event.t);
+            }
+          };
+          this.ctx.waitUntil(run());
         },
         every: (ms, fn) => {
           let interval: ReturnType<typeof setInterval> | null = null;
