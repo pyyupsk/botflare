@@ -1,12 +1,7 @@
 import { RuleConfigSeverity, type UserConfig } from '@commitlint/types';
 
-/** Bare `@name` in a commit message notifies that GitHub user. Backticks stop it. */
 const BARE_MENTION = /(?:^|[^\w`])@[\w-]+/g;
 
-/**
- * Strips code spans so `@pyyupsk` is exempt, then looks for what is left.
- * A match followed by `/` is an npm scope like @astrojs/mdx, not a mention.
- */
 function hasBareMention(message: string): boolean {
   const text = message.replace(/`[^`]*`/g, '');
   for (const match of text.matchAll(BARE_MENTION)) {

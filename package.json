@@ -12,7 +12,7 @@
     "lint:fix": "oxlint --fix",
     "prepare": "nit install",
     "test": "vitest run",
-    "typecheck": "bun check"
+    "typecheck": "bun check && bun run --filter './packages/*' typecheck"
   },
   "devDependencies": {
     "@cloudflare/vitest-plugin": "^1.5.1",
