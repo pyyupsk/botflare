@@ -1,0 +1,55 @@
+import type {
+  APIModalInteractionResponseCallbackData,
+  APIModalSubmissionComponent,
+  APIModalSubmitInteraction,
+} from 'discord-api-types/v10';
+
+import type { Button } from '#utils/message';
+
+export type Fields = Record<
+  string,
+  { label: string; style?: 'short' | 'paragraph'; required?: boolean }
+>;
+
+export type Modal<F extends Fields = Fields> = {
+  id: string;
+  title: string;
+  fields: F;
+  run(c: {
+    interaction: APIModalSubmitInteraction;
+    fields: { [K in keyof F]: string };
+    reply: (content: string, buttons?: Button[]) => Response;
+  }): Response | Promise<Response>;
+};
+
+export function modalData(modal: Modal): APIModalInteractionResponseCallbackData {
+  return {
+    custom_id: modal.id,
+    title: modal.title,
+    components: Object.entries(modal.fields).map(([name, field]) => ({
+      type: 18,
+      label: field.label,
+      component: {
+        type: 4,
+        custom_id: name,
+        style: field.style === 'paragraph' ? 2 : 1,
+        required: field.required ?? true,
+      },
+    })),
+  };
+}
+
+export function fieldValues(components: APIModalSubmissionComponent[]): Record<string, string> {
+  const inputs = components.flatMap((row) => {
+    if ('component' in row) return [row.component];
+    if ('components' in row) return row.components;
+    return [];
+  });
+
+  const values: Record<string, string> = {};
+  for (const input of inputs) {
+    if ('value' in input && typeof input.value === 'string') values[input.custom_id] = input.value;
+  }
+
+  return values;
+}

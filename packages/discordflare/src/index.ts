@@ -6,6 +6,7 @@ import type {
   APIInteractionResponsePong,
   APIInteractionResponseUpdateMessage,
   APIMessageComponentButtonInteraction,
+  APIModalInteractionResponse,
   ApplicationCommandType,
   ComponentType,
   InteractionType,
@@ -14,11 +15,13 @@ import type {
 import { editOriginal } from '#lib/discord';
 import type { Command, Context, Option, OptionValue, Options } from '#utils/command';
 import { type Button, message } from '#utils/message';
+import { type Fields, type Modal, fieldValues, modalData } from '#utils/modal';
 import { verify } from '#utils/verify';
 
 const PING: InteractionType.Ping = 1;
 const APPLICATION_COMMAND: InteractionType.ApplicationCommand = 2;
 const MESSAGE_COMPONENT: InteractionType.MessageComponent = 3;
+const MODAL_SUBMIT: InteractionType.ModalSubmit = 5;
 const CHAT_INPUT: ApplicationCommandType.ChatInput = 1;
 const BUTTON: ComponentType.Button = 2;
 const PONG: APIInteractionResponsePong = { type: 1 };
@@ -72,6 +75,35 @@ export function command<const O extends Options = never>(
   };
 }
 
+/**
+ * Declares a modal: a form Discord shows in a popup. Open it with `c.modal()` from a command or a
+ * button, and add it to the `modals` of {@link bot} so the bot gets what the user typed.
+ *
+ * @param config What Discord shows in the popup.
+ * @param config.id The id Discord sends back when the user submits the form.
+ * @param config.title The title of the popup.
+ * @param config.fields The text fields, keyed by name. A field is required unless `required` is `false`.
+ * @param run Answers the submitted form. `c.fields` holds the text of each field, keyed by name.
+ * @returns The modal, for `c.modal()` and the `modals` of {@link bot}.
+ * @example
+ * const feedback = modal(
+ *   { id: 'feedback', title: 'Feedback', fields: { text: { label: 'Your idea', style: 'paragraph' } } },
+ *   (c) => c.reply(`Thanks: ${c.fields.text}`),
+ * );
+ */
+export function modal<const F extends Fields>(
+  config: { id: string; title: string; fields: F },
+  run: Modal<F>['run'],
+): Modal<F> {
+  return { id: config.id, title: config.title, fields: config.fields, run };
+}
+
+function showModal(form: Modal): Response {
+  const response: APIModalInteractionResponse = { type: 9, data: modalData(form) };
+
+  return Response.json(response);
+}
+
 function reply(content: string, buttons?: Button[]): Response {
   const response: APIInteractionResponseChannelMessageWithSource = {
     type: 4,
@@ -98,6 +130,7 @@ function update(content: string, buttons?: Button[]): Response {
  *
  * @param config What the bot answers.
  * @param config.commands The commands, made with {@link command}.
+ * @param config.modals The modals the bot answers, made with {@link modal}.
  * @param config.buttons Answers a click, keyed by the button id given to `reply`. `update` edits the
  *   message that holds the button. Pass `[]` as its buttons to remove them.
  * @returns The Worker handler. Export it as the default export of your Worker.
@@ -114,8 +147,10 @@ export function bot(config: {
       interaction: APIMessageComponentButtonInteraction;
       reply: typeof reply;
       update: typeof update;
+      modal: typeof showModal;
     }) => Response | Promise<Response>
   >;
+  modals?: Modal[];
 }): {
   commands: Command[];
   fetch: (
@@ -125,6 +160,7 @@ export function bot(config: {
   ) => Promise<Response>;
 } {
   const commands = new Map(config.commands.map((c) => [c.name, c]));
+  const modals = new Map((config.modals ?? []).map((m) => [m.id, m]));
 
   return {
     commands: config.commands,
@@ -159,6 +195,18 @@ export function bot(config: {
           interaction: interaction as APIMessageComponentButtonInteraction,
           reply,
           update,
+          modal: showModal,
+        });
+      }
+
+      if (interaction.type === MODAL_SUBMIT) {
+        const submitted = modals.get(interaction.data.custom_id);
+        if (!submitted) return new Response(null, { status: 404 });
+
+        return submitted.run({
+          interaction,
+          fields: fieldValues(interaction.data.components),
+          reply,
         });
       }
 
@@ -187,6 +235,7 @@ export function bot(config: {
         options: values,
         reply,
         defer,
+        modal: showModal,
       });
     },
   };

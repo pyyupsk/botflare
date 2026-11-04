@@ -1,7 +1,7 @@
 import { createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
 import { afterEach, beforeAll, expect, expectTypeOf, it, vi } from 'vitest';
 
-import { bot, command, option } from './index';
+import { bot, command, modal, option } from './index';
 
 const encoder = new TextEncoder();
 const hex = (buffer: ArrayBuffer): string =>
@@ -77,9 +77,26 @@ const pick = command({ name: 'pick', description: 'Pick one' }, (c) =>
   ]),
 );
 
+const feedback = modal(
+  { id: 'feedback', title: 'Feedback', fields: { text: { label: 'Your idea' } } },
+  (c) => {
+    expectTypeOf(c.fields.text).toEqualTypeOf<string>();
+    // @ts-expect-error
+    void c.fields.missing;
+
+    return c.reply(`thanks: ${c.fields.text}`);
+  },
+);
+
+const ask = command({ name: 'ask', description: 'Ask for feedback' }, (c) => c.modal(feedback));
+
 const app = bot({
-  commands: [roll, hello, slow, pick],
-  buttons: { yes: (c) => c.update(`${c.interaction.member?.user.username} said yes`, []) },
+  commands: [roll, hello, slow, pick, ask],
+  buttons: {
+    yes: (c) => c.update(`${c.interaction.member?.user.username} said yes`, []),
+    open: (c) => c.modal(feedback),
+  },
+  modals: [feedback],
 });
 
 let ctx = createExecutionContext();
@@ -96,6 +113,20 @@ function click(id: string): string {
     token: 'interaction-token',
     member: { user: { username: 'yu' } },
     data: { component_type: 2, custom_id: id },
+  });
+}
+
+function submit(id: string, text: string): string {
+  return JSON.stringify({
+    type: 5,
+    application_id: '7',
+    token: 'interaction-token',
+    data: {
+      custom_id: id,
+      components: [
+        { type: 18, id: 1, component: { type: 4, id: 2, custom_id: 'text', value: text } },
+      ],
+    },
   });
 }
 
@@ -224,6 +255,27 @@ it('runs the handler of the clicked button and updates the message', async () =>
 
 it('answers 404 for a button without a handler', async () => {
   const res = await app.fetch(await signed(click('no')), env, ctx);
+
+  expect(res.status).toBe(404);
+});
+
+it('opens a modal from a command and from a button', async () => {
+  const fromCommand = await app.fetch(await signed(slash('ask', [])), env, ctx);
+  const fromButton = await app.fetch(await signed(click('open')), env, ctx);
+
+  const expected = { type: 9, data: { custom_id: 'feedback', title: 'Feedback' } };
+  expect(await fromCommand.json()).toMatchObject(expected);
+  expect(await fromButton.json()).toMatchObject(expected);
+});
+
+it('runs the modal handler with what the user typed', async () => {
+  const res = await app.fetch(await signed(submit('feedback', 'ship it')), env, ctx);
+
+  expect(await res.json()).toEqual({ type: 4, data: { content: 'thanks: ship it' } });
+});
+
+it('answers 404 for a modal the bot does not know', async () => {
+  const res = await app.fetch(await signed(submit('nope', 'x')), env, ctx);
 
   expect(res.status).toBe(404);
 });
