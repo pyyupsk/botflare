@@ -15,6 +15,7 @@
   },
   "exports": {
     ".": "./dist/index.mjs",
+    "./gateway": "./dist/gateway.mjs",
     "./package.json": "./package.json"
   },
   "scripts": {
