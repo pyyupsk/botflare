@@ -12,7 +12,7 @@ import type {
   InteractionType,
 } from 'discord-api-types/v10';
 
-import { editOriginal } from '#lib/discord';
+import { editOriginal, sendMessage } from '#lib/discord';
 import type { Command, Context, Option, OptionValue, Options } from '#utils/command';
 import { type Button, message } from '#utils/message';
 import { type Fields, type Modal, fieldValues, modalData } from '#utils/modal';
@@ -131,6 +131,8 @@ function update(content: string, buttons?: Button[]): Response {
  * @param config What the bot answers.
  * @param config.commands The commands, made with {@link command}.
  * @param config.modals The modals the bot answers, made with {@link modal}.
+ * @param config.cron Runs on a Cron Trigger, keyed by the cron expression from your Wrangler config.
+ *   `c.send` posts a message to a channel with `DISCORD_TOKEN` and returns an `Error` if Discord refuses.
  * @param config.buttons Answers a click, keyed by the button id given to `reply`. `update` edits the
  *   message that holds the button. Pass `[]` as its buttons to remove them.
  * @returns The Worker handler. Export it as the default export of your Worker.
@@ -151,6 +153,13 @@ export function bot(config: {
     }) => Response | Promise<Response>
   >;
   modals?: Modal[];
+  cron?: Record<
+    string,
+    (c: {
+      controller: ScheduledController;
+      send: (channelId: string, content: string) => Promise<Error | null>;
+    }) => void | Promise<void>
+  >;
 }): {
   commands: Command[];
   fetch: (
@@ -158,12 +167,22 @@ export function bot(config: {
     env: { DISCORD_PUBLIC_KEY: string },
     ctx: ExecutionContext,
   ) => Promise<Response>;
+  scheduled: (controller: ScheduledController, env: { DISCORD_TOKEN: string }) => Promise<void>;
 } {
   const commands = new Map(config.commands.map((c) => [c.name, c]));
   const modals = new Map((config.modals ?? []).map((m) => [m.id, m]));
 
   return {
     commands: config.commands,
+    async scheduled(controller, env) {
+      const job = config.cron?.[controller.cron];
+      if (!job) return;
+
+      await job({
+        controller,
+        send: (channelId, content) => sendMessage(env.DISCORD_TOKEN, channelId, content),
+      });
+    },
     async fetch(request, env, ctx) {
       if (request.method !== 'POST') return new Response(null, { status: 405 });
 

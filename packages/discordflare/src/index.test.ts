@@ -1,4 +1,8 @@
-import { createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
+import {
+  createExecutionContext,
+  createScheduledController,
+  waitOnExecutionContext,
+} from 'cloudflare:test';
 import { afterEach, beforeAll, expect, expectTypeOf, it, vi } from 'vitest';
 
 import { bot, command, modal, option } from './index';
@@ -97,6 +101,12 @@ const app = bot({
     open: (c) => c.modal(feedback),
   },
   modals: [feedback],
+  cron: {
+    '0 9 * * *': async (c) => {
+      const error = await c.send('42', 'good morning');
+      if (error) await c.send('42', `failed: ${error.message}`);
+    },
+  },
 });
 
 let ctx = createExecutionContext();
@@ -278,4 +288,53 @@ it('answers 404 for a modal the bot does not know', async () => {
   const res = await app.fetch(await signed(submit('nope', 'x')), env, ctx);
 
   expect(res.status).toBe(404);
+});
+
+it('runs the cron job for the trigger and posts to the channel with the bot token', async () => {
+  const fetch = vi.fn(async () => Response.json({}));
+  vi.stubGlobal('fetch', fetch);
+
+  await app.scheduled(createScheduledController({ cron: '0 9 * * *' }), {
+    DISCORD_TOKEN: 'secret',
+  });
+
+  expect(fetch).toHaveBeenCalledOnce();
+  expect(fetch).toHaveBeenCalledWith(
+    'https://discord.com/api/v10/channels/42/messages',
+    expect.objectContaining({
+      method: 'POST',
+      headers: expect.objectContaining({ Authorization: 'Bot secret' }),
+      body: JSON.stringify({ content: 'good morning' }),
+    }),
+  );
+});
+
+it("hands Discord's refusal back to the cron job as an error", async () => {
+  const fetch = vi
+    .fn()
+    .mockResolvedValueOnce(new Response('Missing Access', { status: 403 }))
+    .mockResolvedValueOnce(Response.json({}));
+  vi.stubGlobal('fetch', fetch);
+
+  await app.scheduled(createScheduledController({ cron: '0 9 * * *' }), {
+    DISCORD_TOKEN: 'secret',
+  });
+
+  expect(fetch).toHaveBeenLastCalledWith(
+    'https://discord.com/api/v10/channels/42/messages',
+    expect.objectContaining({
+      body: JSON.stringify({ content: 'failed: Discord answered 403: Missing Access' }),
+    }),
+  );
+});
+
+it('does nothing for a trigger without a job', async () => {
+  const fetch = vi.fn();
+  vi.stubGlobal('fetch', fetch);
+
+  await app.scheduled(createScheduledController({ cron: '*/5 * * * *' }), {
+    DISCORD_TOKEN: 'secret',
+  });
+
+  expect(fetch).not.toHaveBeenCalled();
 });

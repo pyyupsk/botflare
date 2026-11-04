@@ -1,5 +1,6 @@
 import type {
   RESTPatchAPIWebhookWithTokenMessageJSONBody,
+  RESTPostAPIChannelMessageJSONBody,
   RESTPutAPIApplicationCommandsJSONBody,
 } from 'discord-api-types/v10';
 
@@ -37,6 +38,24 @@ export async function editOriginal(
   const res = await fetch(`${API}/webhooks/${applicationId}/${token}/messages/@original`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) return new Error(`Discord answered ${res.status}: ${await res.text()}`);
+
+  return null;
+}
+
+export async function sendMessage(
+  token: string,
+  channelId: string,
+  content: string,
+): Promise<Error | null> {
+  const body: RESTPostAPIChannelMessageJSONBody = { content };
+
+  const res = await fetch(`${API}/channels/${channelId}/messages`, {
+    method: 'POST',
+    headers: { Authorization: `Bot ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
 
