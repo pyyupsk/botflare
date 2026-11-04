@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { registerHooks } from 'node:module';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
@@ -10,6 +11,25 @@ import { type Command, payload } from '#utils/command';
 import { syncEnv } from '#utils/env';
 
 const plural = (n: number): string => `${n} command${n === 1 ? '' : 's'}`;
+
+const WORKERS_STUB = `data:text/javascript,${encodeURIComponent(
+  [
+    'export const env = {};',
+    'export const exports = {};',
+    'export function waitUntil() {}',
+    'export class DurableObject {}',
+    'export class WorkerEntrypoint {}',
+    'export class WorkflowEntrypoint {}',
+    'export class RpcTarget {}',
+  ].join('\n'),
+)}`;
+
+registerHooks({
+  resolve: (specifier, context, next) =>
+    specifier.startsWith('cloudflare:')
+      ? { url: WORKERS_STUB, shortCircuit: true }
+      : next(specifier, context),
+});
 
 async function main(): Promise<number> {
   intro('discordflare sync');
@@ -27,9 +47,14 @@ async function main(): Promise<number> {
     return 1;
   }
 
-  const mod = (await import(pathToFileURL(resolve(entry)).href)) as {
-    default?: { commands?: Command[] };
-  };
+  let mod: { default?: { commands?: Command[] } };
+  try {
+    mod = await import(pathToFileURL(resolve(entry)).href);
+  } catch (error) {
+    cancel(`Cannot load ${entry}: ${error instanceof Error ? error.message : String(error)}`);
+    return 1;
+  }
+
   const commands = mod.default?.commands;
   if (!commands) {
     cancel(`${entry} must export default bot({ commands })`);
