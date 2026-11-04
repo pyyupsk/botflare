@@ -5,7 +5,7 @@ import { gateway } from './gateway';
 
 it('types each event handler from the event name', () => {
   gateway({
-    intents: 1 << 9,
+    intents: ['GuildMessages'],
     events: {
       MESSAGE_CREATE: (message) => {
         expectTypeOf(message).toEqualTypeOf<GatewayMessageCreateDispatchData>();
@@ -13,5 +13,19 @@ it('types each event handler from the event name', () => {
       // @ts-expect-error
       NOT_AN_EVENT: () => {},
     },
+  });
+});
+
+it('accepts only current intent names', () => {
+  gateway({
+    // @ts-expect-error
+    intents: ['NotAnIntent'],
+    events: {},
+  });
+
+  gateway({
+    // @ts-expect-error
+    intents: ['GuildBans'],
+    events: {},
   });
 });

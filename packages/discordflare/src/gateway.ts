@@ -8,6 +8,7 @@ import type {
 
 import type { Bot, ErrorHandler } from '#index';
 import { interactionCallback, type Send, sendMessage } from '#lib/discord';
+import { type Intent, intentBits } from '#utils/intents';
 import { afterClose, type Session, Shard } from '#utils/shard';
 
 const GATEWAY = 'wss://gateway.discord.gg';
@@ -15,7 +16,7 @@ const WATCH_MS = 60_000;
 const INTERACTION_CREATE = 'INTERACTION_CREATE' as GatewayDispatchEvents.InteractionCreate;
 
 type GatewayConfig = {
-  intents: number;
+  intents: Intent[];
   presence?: GatewayPresenceUpdateData;
   bot?: Pick<Bot, 'answer'>;
   onError?: ErrorHandler;
@@ -32,7 +33,8 @@ type GatewayConfig = {
  * It reads `DISCORD_TOKEN` from the Worker environment.
  *
  * @param config What the bot listens to.
- * @param config.intents The gateway intents, a sum of `GatewayIntentBits` values.
+ * @param config.intents The names of the gateway intents the bot needs, such as `'GuildMessages'`.
+ *   Turn on privileged ones, such as `'MessageContent'`, in the Developer Portal first.
  * @param config.presence The status the bot shows while it is connected.
  * @param config.events A handler per dispatch event name. `c.send` posts a message to a channel.
  * @param config.onError Gets errors from event handlers and from answering interactions.
@@ -46,7 +48,7 @@ type GatewayConfig = {
  * const app = bot({ commands: [], gateway: 'GATEWAY' });
  *
  * export const Gateway = gateway({
- *   intents: 1 << 9,
+ *   intents: ['Guilds', 'GuildMessages'],
  *   bot: app,
  *   events: { MESSAGE_CREATE: (message, c) => c.send(message.channel_id, 'heard you') },
  * });
@@ -76,12 +78,15 @@ export function gateway(
     }
 
     private dial(): void {
-      const saved = this.ctx.storage.kv.get<Session>('session') ?? null;
+      const identity = { intents: intentBits(config.intents), presence: config.presence };
+      const stored = this.ctx.storage.kv.get<Session>('session');
+      const saved = stored?.intents === identity.intents ? stored : null;
+
       const ws = new WebSocket(`${saved?.url ?? GATEWAY}/?v=10&encoding=json`);
       const send: Send = (channelId, content) =>
         sendMessage(this.env.DISCORD_TOKEN, channelId, content);
 
-      const shard = new Shard(this.env.DISCORD_TOKEN, config, saved, {
+      const shard = new Shard(this.env.DISCORD_TOKEN, identity, saved, {
         send: (payload) => ws.send(JSON.stringify(payload)),
         reconnect: (resume) => {
           if (this.ws !== ws) return;

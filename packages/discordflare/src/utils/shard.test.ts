@@ -53,7 +53,7 @@ it('sends the presence when the bot sets one', () => {
 });
 
 it('resumes a saved session from its last sequence', () => {
-  const { sent, hello } = setup({ id: 'abc', url: 'wss://resume', seq: 42 });
+  const { sent, hello } = setup({ id: 'abc', url: 'wss://resume', seq: 42, intents: 513 });
 
   hello();
 
@@ -72,8 +72,8 @@ it('stores the session on READY and advances its sequence on later events', () =
   shard.handle({ op: 0, t: 'GUILD_CREATE', s: 2, d: {} } as never);
 
   expect(saved).toEqual([
-    { id: 's1', url: 'wss://r', seq: 1 },
-    { id: 's1', url: 'wss://r', seq: 2 },
+    { id: 's1', url: 'wss://r', seq: 1, intents: 513 },
+    { id: 's1', url: 'wss://r', seq: 2, intents: 513 },
   ]);
 });
 
@@ -93,7 +93,7 @@ it('reconnects and resumes when a heartbeat gets no ack before the next one', ()
 });
 
 it('forgets a session that cannot resume', () => {
-  const { shard, reconnects, saved } = setup({ id: 'abc', url: 'wss://r', seq: 9 });
+  const { shard, reconnects, saved } = setup({ id: 'abc', url: 'wss://r', seq: 9, intents: 513 });
 
   shard.handle({ op: 9, d: false } as never);
 
@@ -102,7 +102,7 @@ it('forgets a session that cannot resume', () => {
 });
 
 it('sends the presence again after a resume', () => {
-  const { shard, sent } = setup({ id: 'abc', url: 'wss://r', seq: 9 }, true);
+  const { shard, sent } = setup({ id: 'abc', url: 'wss://r', seq: 9, intents: 513 }, true);
 
   shard.handle({ op: 0, t: 'RESUMED', s: 10, d: {} } as never);
 

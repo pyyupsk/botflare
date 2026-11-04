@@ -8,7 +8,7 @@ import type {
   GatewaySendPayload,
 } from 'discord-api-types/v10';
 
-export type Session = { id: string; url: string; seq: number | null };
+export type Session = { id: string; url: string; seq: number | null; intents: number };
 
 const DISPATCH: GatewayOpcodes.Dispatch = 0;
 const HEARTBEAT: GatewayOpcodes.Heartbeat = 1;
@@ -108,6 +108,7 @@ export class Shard {
         id: payload.d.session_id,
         url: payload.d.resume_gateway_url,
         seq: payload.s,
+        intents: this.identity.intents,
       };
     } else if (this.session) {
       this.session.seq = payload.s;
