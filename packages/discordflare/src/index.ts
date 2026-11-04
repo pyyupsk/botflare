@@ -20,18 +20,6 @@ const DEFERRED: APIInteractionResponseDeferredChannelMessageWithSource = { type:
 const PUBLIC_KEY = /^[\da-f]{64}$/i;
 
 /**
- * Bindings the bot reads from the Worker environment.
- * `DISCORD_PUBLIC_KEY` is the hex public key from your application in the Discord Developer Portal.
- */
-export type Env = { DISCORD_PUBLIC_KEY: string };
-
-/** A Worker handler that answers Discord interactions. Export it as the default export of your Worker. */
-export type Bot = {
-  commands: Command[];
-  fetch: (request: Request, env: Env, ctx: ExecutionContext) => Promise<Response>;
-};
-
-/**
  * Declares one option of a slash command. The handler reads its value from `c.options`,
  * typed from `type`, and `undefined` when the option is not `required`.
  *
@@ -86,17 +74,25 @@ function reply(content: string): Response {
 /**
  * Creates a Worker handler for the Interactions Endpoint URL of a Discord application.
  * It rejects requests without a valid Ed25519 signature, answers Discord's PING check
- * and runs the matching command.
+ * and runs the matching command. It reads `DISCORD_PUBLIC_KEY` from the Worker environment:
+ * the hex public key of your application in the Discord Developer Portal.
  *
  * @param config What the bot answers.
  * @param config.commands The commands, made with {@link command}.
- * @returns The Worker handler.
+ * @returns The Worker handler. Export it as the default export of your Worker.
  * @example
  * import { bot, command } from 'discordflare';
  *
  * export default bot({ commands: [command({ name: 'ping', description: 'Pong' }, (c) => c.reply('pong'))] });
  */
-export function bot(config: { commands: Command[] }): Bot {
+export function bot(config: { commands: Command[] }): {
+  commands: Command[];
+  fetch: (
+    request: Request,
+    env: { DISCORD_PUBLIC_KEY: string },
+    ctx: ExecutionContext,
+  ) => Promise<Response>;
+} {
   const commands = new Map(config.commands.map((c) => [c.name, c]));
 
   return {

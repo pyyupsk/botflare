@@ -15,15 +15,13 @@ export type Option<T extends keyof OptionValue = keyof OptionValue, R extends bo
 
 export type Options = Record<string, Option>;
 
-type Values<O extends Options> = {
-  [K in keyof O]: O[K] extends Option<infer T, true>
-    ? OptionValue[T]
-    : OptionValue[O[K]['type']] | undefined;
-};
-
 export type Context<O extends Options> = {
   interaction: APIChatInputApplicationCommandInteraction;
-  options: Values<O>;
+  options: {
+    [K in keyof O]: O[K] extends Option<infer T, true>
+      ? OptionValue[T]
+      : OptionValue[O[K]['type']] | undefined;
+  };
   reply: (content: string) => Response;
   defer: (work: () => Promise<string>) => Response;
 };
