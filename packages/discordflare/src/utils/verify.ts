@@ -13,9 +13,12 @@ export async function verify(
 ): Promise<boolean> {
   const key = bytes(publicKey);
   const sig = bytes(signature);
+
   if (key?.length !== 32 || sig?.length !== 64) return false;
+
   const imported = await crypto.subtle.importKey('raw', key, { name: 'Ed25519' }, false, [
     'verify',
   ]);
+
   return crypto.subtle.verify({ name: 'Ed25519' }, imported, sig, encoder.encode(timestamp + body));
 }
