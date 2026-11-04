@@ -2,6 +2,9 @@
   "name": "discordflare",
   "version": "0.0.0",
   "license": "MIT",
+  "bin": {
+    "discordflare": "./dist/cli.mjs"
+  },
   "files": [
     "dist"
   ],
@@ -16,12 +19,16 @@
   },
   "scripts": {
     "build": "tsdown",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit && tsc --noEmit -p cli"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.8.1",
+    "discord-api-types": "^0.38.57"
   },
   "devDependencies": {
     "@arethetypeswrong/core": "^0.18.5",
     "@cloudflare/workers-types": "^5.20261104.1",
-    "discord-api-types": "^0.38.57",
+    "@types/node": "^26.6.6",
     "publint": "^0.3.25",
     "tsdown": "^0.23.5"
   }

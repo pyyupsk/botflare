@@ -7,6 +7,7 @@ import type {
   InteractionType,
 } from 'discord-api-types/v10';
 
+import type { Command, Context, Option, OptionValue, Options } from '#utils/command';
 import { verify } from '#utils/verify';
 
 const PING: InteractionType.Ping = 1;
@@ -14,35 +15,6 @@ const APPLICATION_COMMAND: InteractionType.ApplicationCommand = 2;
 const CHAT_INPUT: ApplicationCommandType.ChatInput = 1;
 const PONG: APIInteractionResponsePong = { type: 1 };
 const PUBLIC_KEY = /^[\da-f]{64}$/i;
-
-type OptionValue = { string: string; integer: number; number: number; boolean: boolean };
-
-type Option<T extends keyof OptionValue = keyof OptionValue, R extends boolean = boolean> = {
-  type: T;
-  description: string;
-  required: R;
-};
-
-type Options = Record<string, Option>;
-
-type Values<O extends Options> = {
-  [K in keyof O]: O[K] extends Option<infer T, true>
-    ? OptionValue[T]
-    : OptionValue[O[K]['type']] | undefined;
-};
-
-type Context<O extends Options> = {
-  interaction: APIChatInputApplicationCommandInteraction;
-  options: Values<O>;
-  reply: (content: string) => Response;
-};
-
-type Command<O extends Options = Options> = {
-  name: string;
-  description: string;
-  options: O;
-  run(c: Context<O>): Response | Promise<Response>;
-};
 
 /**
  * Bindings the bot reads from the Worker environment.
@@ -52,6 +24,7 @@ export type Env = { DISCORD_PUBLIC_KEY: string };
 
 /** A Worker handler that answers Discord interactions. Export it as the default export of your Worker. */
 export type Bot = {
+  commands: Command[];
   fetch: (request: Request, env: Env) => Promise<Response>;
 };
 
@@ -123,6 +96,7 @@ export function bot(config: { commands: Command[] }): Bot {
   const commands = new Map(config.commands.map((c) => [c.name, c]));
 
   return {
+    commands: config.commands,
     async fetch(request, env) {
       if (request.method !== 'POST') return new Response(null, { status: 405 });
 

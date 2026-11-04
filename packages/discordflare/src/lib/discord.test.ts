@@ -1,0 +1,37 @@
+import { afterEach, expect, it, vi } from 'vitest';
+
+import { putCommands } from './discord';
+
+const env = { token: 'secret', applicationId: '1', guildId: undefined };
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+it('puts the commands for a server and counts what Discord saved', async () => {
+  const fetch = vi.fn(async () => Response.json([{ id: '1' }, { id: '2' }]));
+  vi.stubGlobal('fetch', fetch);
+
+  const result = await putCommands({ ...env, guildId: '9' }, []);
+
+  expect(result).toEqual([null, 2]);
+  expect(fetch).toHaveBeenCalledWith(
+    'https://discord.com/api/v10/applications/1/guilds/9/commands',
+    expect.objectContaining({
+      method: 'PUT',
+      headers: expect.objectContaining({ Authorization: 'Bot secret' }),
+    }),
+  );
+});
+
+it("returns Discord's error instead of throwing", async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => new Response('401: Unauthorized', { status: 401 })),
+  );
+
+  const [error, count] = await putCommands(env, []);
+
+  expect(count).toBeNull();
+  expect(error?.message).toBe('Discord answered 401: 401: Unauthorized');
+});
