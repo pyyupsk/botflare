@@ -2,10 +2,6 @@
   "name": "discordflare",
   "license": "MIT",
   "type": "module",
-  "module": "index.ts",
-  "scripts": {
-    "typecheck": "bun check"
-  },
   "peerDependencies": {
     "typescript": "^7"
   }
