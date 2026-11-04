@@ -3,6 +3,7 @@ import {
   createScheduledController,
   waitOnExecutionContext,
 } from 'cloudflare:test';
+import type { APIInteractionDataResolvedChannel, APIRole, APIUser } from 'discord-api-types/v10';
 import { afterEach, beforeAll, expect, expectTypeOf, it, vi } from 'vitest';
 
 import { bot, command, modal, option } from './index';
@@ -94,8 +95,29 @@ const feedback = modal(
 
 const ask = command({ name: 'ask', description: 'Ask for feedback' }, (c) => c.modal(feedback));
 
+const whois = command(
+  {
+    name: 'whois',
+    description: 'Names a user, a channel and a role',
+    options: {
+      user: option('user', { description: 'Who', required: true }),
+      where: option('channel', { description: 'Where', required: true }),
+      role: option('role', { description: 'Which role' }),
+    },
+  },
+  (c) => {
+    expectTypeOf(c.options.user).toEqualTypeOf<APIUser>();
+    expectTypeOf(c.options.where).toEqualTypeOf<APIInteractionDataResolvedChannel>();
+    expectTypeOf(c.options.role).toEqualTypeOf<APIRole | undefined>();
+
+    return c.reply(
+      `${c.options.user.username} in #${c.options.where.name} as ${c.options.role?.name ?? 'nobody'}`,
+    );
+  },
+);
+
 const app = bot({
-  commands: [roll, hello, slow, pick, ask],
+  commands: [roll, hello, slow, pick, ask, whois],
   buttons: {
     yes: (c) => c.update(`${c.interaction.member?.user.username} said yes`, []),
     open: (c) => c.modal(feedback),
@@ -399,4 +421,30 @@ it('reports an edit that Discord refuses', async () => {
   await waitOnExecutionContext(ctx);
 
   expect(onError).toHaveBeenCalledWith(new Error('Discord answered 404: Unknown Webhook'), '/slow');
+});
+
+it('gives user, channel and role options as the objects Discord resolved', async () => {
+  const body = JSON.stringify({
+    type: 2,
+    application_id: '7',
+    token: 'interaction-token',
+    data: {
+      type: 1,
+      name: 'whois',
+      options: [
+        { name: 'user', type: 6, value: '11' },
+        { name: 'where', type: 7, value: '22' },
+        { name: 'role', type: 8, value: '33' },
+      ],
+      resolved: {
+        users: { '11': { id: '11', username: 'yu' } },
+        channels: { '22': { id: '22', name: 'general', type: 0 } },
+        roles: { '33': { id: '33', name: 'member' } },
+      },
+    },
+  });
+
+  const res = await app.fetch(await signed(body), env, ctx);
+
+  expect(await res.json()).toEqual({ type: 4, data: { content: 'yu in #general as member' } });
 });

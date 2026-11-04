@@ -13,7 +13,14 @@ import type {
 } from 'discord-api-types/v10';
 
 import { editOriginal, type Send, sendMessage } from '#lib/discord';
-import type { Command, Context, Option, OptionValue, Options } from '#utils/command';
+import {
+  type Command,
+  type Context,
+  type Option,
+  type OptionValue,
+  type Options,
+  optionValues,
+} from '#utils/command';
 import { type Button, message } from '#utils/message';
 import { type Fields, type Modal, fieldValues, modalData } from '#utils/modal';
 import { verify } from '#utils/verify';
@@ -38,7 +45,8 @@ export type ErrorHandler = (error: unknown, where: string) => void | Promise<voi
  * Declares one option of a slash command. The handler reads its value from `c.options`,
  * typed from `type`, and `undefined` when the option is not `required`.
  *
- * @param type The value type Discord asks the user for.
+ * @param type The value type Discord asks the user for. `user`, `channel` and `role` give the full
+ *   object Discord sends with the command, not only its id.
  * @param config How Discord shows the option.
  * @param config.description The text Discord shows under the option name.
  * @param config.required Whether the user must fill it in. Defaults to `false`.
@@ -226,9 +234,7 @@ export function bot(config: BotConfig): Bot {
     const found = commands.get(interaction.data.name);
     if (!found) return new Response(null, { status: 404 });
 
-    const values = Object.fromEntries(
-      (interaction.data.options ?? []).map((o) => [o.name, 'value' in o ? o.value : undefined]),
-    );
+    const values = optionValues(interaction.data);
 
     const defer = (work: () => Promise<string>): Response => {
       const where = `/${interaction.data.name}`;
