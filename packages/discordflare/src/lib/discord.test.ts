@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest';
 
-import { putCommands } from './discord';
+import { interactionCallback, putCommands } from './discord';
 
 const env = { token: 'secret', applicationId: '1', guildId: undefined };
 
@@ -34,4 +34,24 @@ it("returns Discord's error instead of throwing", async () => {
 
   expect(count).toBeNull();
   expect(error?.message).toBe('Discord answered 401: 401: Unauthorized');
+});
+
+it('posts an interaction response to its callback url', async () => {
+  const fetch = vi.fn(async () => new Response(null, { status: 204 }));
+  vi.stubGlobal('fetch', fetch);
+
+  const error = await interactionCallback(
+    '5',
+    'tok',
+    Response.json({ type: 4, data: { content: 'hi' } }),
+  );
+
+  expect(error).toBeNull();
+  expect(fetch).toHaveBeenCalledWith(
+    'https://discord.com/api/v10/interactions/5/tok/callback',
+    expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({ type: 4, data: { content: 'hi' } }),
+    }),
+  );
 });

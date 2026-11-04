@@ -63,3 +63,19 @@ export async function sendMessage(
 
   return null;
 }
+
+export async function interactionCallback(
+  id: string,
+  token: string,
+  response: Response,
+): Promise<Error | null> {
+  const res = await fetch(`${API}/interactions/${id}/${token}/callback`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: await response.text(),
+  });
+
+  if (!res.ok) return new Error(`Discord answered ${res.status}: ${await res.text()}`);
+
+  return null;
+}

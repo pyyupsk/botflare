@@ -338,3 +338,12 @@ it('does nothing for a trigger without a job', async () => {
 
   expect(fetch).not.toHaveBeenCalled();
 });
+
+it('answers an interaction handed over directly, as the gateway does', async () => {
+  const res = await app.answer(
+    JSON.parse(slash('roll', [{ name: 'dice', type: 4, value: 4 }])),
+    ctx,
+  );
+
+  expect(await res.json()).toEqual({ type: 4, data: { content: 'roll: 4' } });
+});

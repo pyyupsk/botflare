@@ -1,15 +1,18 @@
 import { DurableObject } from 'cloudflare:workers';
 import type {
+  GatewayDispatchEvents,
   GatewayDispatchPayload,
   GatewayPresenceUpdateData,
   GatewayReceivePayload,
 } from 'discord-api-types/v10';
 
-import { sendMessage } from '#lib/discord';
+import type { bot } from '#index';
+import { interactionCallback, sendMessage } from '#lib/discord';
 import { afterClose, type Session, Shard } from '#utils/shard';
 
 const GATEWAY = 'wss://gateway.discord.gg';
 const WATCH_MS = 60_000;
+const INTERACTION_CREATE = 'INTERACTION_CREATE' as GatewayDispatchEvents.InteractionCreate;
 
 /**
  * Creates a Durable Object class that keeps one connection to the Discord Gateway open and runs your
@@ -21,6 +24,8 @@ const WATCH_MS = 60_000;
  * @param config.intents The gateway intents, a sum of `GatewayIntentBits` values.
  * @param config.presence The status the bot shows while it is connected.
  * @param config.events A handler per dispatch event name. `c.send` posts a message to a channel.
+ * @param config.bot The bot from {@link bot}. Its handlers answer the commands, buttons and modals that
+ *   arrive over the gateway, so the application needs no Interactions Endpoint URL.
  * @returns The Durable Object class.
  * @example
  * import { gateway } from 'discordflare/gateway';
@@ -39,6 +44,7 @@ const WATCH_MS = 60_000;
 export function gateway(config: {
   intents: number;
   presence?: GatewayPresenceUpdateData;
+  bot?: Pick<ReturnType<typeof bot>, 'answer'>;
   events: {
     [P in GatewayDispatchPayload as P['t']]?: (
       data: P['d'],
@@ -85,6 +91,15 @@ export function gateway(config: {
             ? this.ctx.storage.kv.put('session', session)
             : this.ctx.storage.kv.delete('session'),
         dispatch: (event) => {
+          if (event.t === INTERACTION_CREATE && config.bot) {
+            const { answer } = config.bot;
+            const respond = async (): Promise<void> => {
+              const response = await answer(event.d, this.ctx);
+              if (response.ok) await interactionCallback(event.d.id, event.d.token, response);
+            };
+            this.ctx.waitUntil(respond());
+          }
+
           const handler = config.events[event.t] as
             | ((data: unknown, c: { send: typeof send }) => unknown)
             | undefined;

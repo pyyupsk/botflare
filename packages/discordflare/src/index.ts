@@ -135,7 +135,8 @@ function update(content: string, buttons?: Button[]): Response {
  *   `c.send` posts a message to a channel with `DISCORD_TOKEN` and returns an `Error` if Discord refuses.
  * @param config.buttons Answers a click, keyed by the button id given to `reply`. `update` edits the
  *   message that holds the button. Pass `[]` as its buttons to remove them.
- * @returns The Worker handler. Export it as the default export of your Worker.
+ * @returns The Worker handler. Export it as the default export of your Worker. Pass it to
+ *   `gateway({ bot })` to answer interactions that arrive over the gateway too.
  * @example
  * import { bot, command } from 'discordflare';
  *
@@ -168,12 +169,73 @@ export function bot(config: {
     ctx: ExecutionContext,
   ) => Promise<Response>;
   scheduled: (controller: ScheduledController, env: { DISCORD_TOKEN: string }) => Promise<void>;
+  answer: (
+    interaction: APIInteraction,
+    ctx: Pick<ExecutionContext, 'waitUntil'>,
+  ) => Promise<Response>;
 } {
   const commands = new Map(config.commands.map((c) => [c.name, c]));
   const modals = new Map((config.modals ?? []).map((m) => [m.id, m]));
 
+  const answer = async (
+    interaction: APIInteraction,
+    ctx: Pick<ExecutionContext, 'waitUntil'>,
+  ): Promise<Response> => {
+    if (interaction.type === MESSAGE_COMPONENT && interaction.data.component_type === BUTTON) {
+      const clicked = config.buttons?.[interaction.data.custom_id];
+      if (!clicked) return new Response(null, { status: 404 });
+
+      return clicked({
+        interaction: interaction as APIMessageComponentButtonInteraction,
+        reply,
+        update,
+        modal: showModal,
+      });
+    }
+
+    if (interaction.type === MODAL_SUBMIT) {
+      const submitted = modals.get(interaction.data.custom_id);
+      if (!submitted) return new Response(null, { status: 404 });
+
+      return submitted.run({
+        interaction,
+        fields: fieldValues(interaction.data.components),
+        reply,
+      });
+    }
+
+    if (interaction.type !== APPLICATION_COMMAND || interaction.data.type !== CHAT_INPUT) {
+      return new Response(null, { status: 400 });
+    }
+
+    const found = commands.get(interaction.data.name);
+    if (!found) return new Response(null, { status: 404 });
+
+    const values = Object.fromEntries(
+      (interaction.data.options ?? []).map((o) => [o.name, 'value' in o ? o.value : undefined]),
+    );
+
+    const defer = (work: () => Promise<string>): Response => {
+      const finish = async (): Promise<void> => {
+        await editOriginal(interaction.application_id, interaction.token, await work());
+      };
+      ctx.waitUntil(finish());
+
+      return Response.json(DEFERRED);
+    };
+
+    return found.run({
+      interaction: interaction as APIChatInputApplicationCommandInteraction,
+      options: values,
+      reply,
+      defer,
+      modal: showModal,
+    });
+  };
+
   return {
     commands: config.commands,
+    answer,
     async scheduled(controller, env) {
       const job = config.cron?.[controller.cron];
       if (!job) return;
@@ -206,56 +268,7 @@ export function bot(config: {
       const interaction = JSON.parse(body) as APIInteraction;
       if (interaction.type === PING) return Response.json(PONG);
 
-      if (interaction.type === MESSAGE_COMPONENT && interaction.data.component_type === BUTTON) {
-        const clicked = config.buttons?.[interaction.data.custom_id];
-        if (!clicked) return new Response(null, { status: 404 });
-
-        return clicked({
-          interaction: interaction as APIMessageComponentButtonInteraction,
-          reply,
-          update,
-          modal: showModal,
-        });
-      }
-
-      if (interaction.type === MODAL_SUBMIT) {
-        const submitted = modals.get(interaction.data.custom_id);
-        if (!submitted) return new Response(null, { status: 404 });
-
-        return submitted.run({
-          interaction,
-          fields: fieldValues(interaction.data.components),
-          reply,
-        });
-      }
-
-      if (interaction.type !== APPLICATION_COMMAND || interaction.data.type !== CHAT_INPUT) {
-        return new Response(null, { status: 400 });
-      }
-
-      const found = commands.get(interaction.data.name);
-      if (!found) return new Response(null, { status: 404 });
-
-      const values = Object.fromEntries(
-        (interaction.data.options ?? []).map((o) => [o.name, 'value' in o ? o.value : undefined]),
-      );
-
-      const defer = (work: () => Promise<string>): Response => {
-        const answer = async (): Promise<void> => {
-          await editOriginal(interaction.application_id, interaction.token, await work());
-        };
-        ctx.waitUntil(answer());
-
-        return Response.json(DEFERRED);
-      };
-
-      return found.run({
-        interaction: interaction as APIChatInputApplicationCommandInteraction,
-        options: values,
-        reply,
-        defer,
-        modal: showModal,
-      });
+      return answer(interaction, ctx);
     },
   };
 }
