@@ -347,3 +347,17 @@ it('answers an interaction handed over directly, as the gateway does', async () 
 
   expect(await res.json()).toEqual({ type: 4, data: { content: 'roll: 4' } });
 });
+
+it('starts the gateway on every cron tick when the bot names its binding', async () => {
+  const ensure = vi.fn(async () => {});
+  const getByName = vi.fn(() => ({ ensure }));
+  const withGateway = bot({ commands: [], gateway: 'GATEWAY' });
+
+  await withGateway.scheduled(createScheduledController({ cron: '*/5 * * * *' }), {
+    DISCORD_TOKEN: 'secret',
+    GATEWAY: { getByName },
+  });
+
+  expect(getByName).toHaveBeenCalledWith('main');
+  expect(ensure).toHaveBeenCalledOnce();
+});

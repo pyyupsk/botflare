@@ -131,6 +131,8 @@ function update(content: string, buttons?: Button[]): Response {
  * @param config What the bot answers.
  * @param config.commands The commands, made with {@link command}.
  * @param config.modals The modals the bot answers, made with {@link modal}.
+ * @param config.gateway The name of the Durable Object binding that holds the class from `gateway()`.
+ *   Every Cron Trigger then starts the gateway connection or reconnects it.
  * @param config.cron Runs on a Cron Trigger, keyed by the cron expression from your Wrangler config.
  *   `c.send` posts a message to a channel with `DISCORD_TOKEN` and returns an `Error` if Discord refuses.
  * @param config.buttons Answers a click, keyed by the button id given to `reply`. `update` edits the
@@ -154,6 +156,7 @@ export function bot(config: {
     }) => Response | Promise<Response>
   >;
   modals?: Modal[];
+  gateway?: string;
   cron?: Record<
     string,
     (c: {
@@ -168,7 +171,10 @@ export function bot(config: {
     env: { DISCORD_PUBLIC_KEY: string },
     ctx: ExecutionContext,
   ) => Promise<Response>;
-  scheduled: (controller: ScheduledController, env: { DISCORD_TOKEN: string }) => Promise<void>;
+  scheduled: (
+    controller: ScheduledController,
+    env: { DISCORD_TOKEN: string } & Record<string, unknown>,
+  ) => Promise<void>;
   answer: (
     interaction: APIInteraction,
     ctx: Pick<ExecutionContext, 'waitUntil'>,
@@ -237,6 +243,12 @@ export function bot(config: {
     commands: config.commands,
     answer,
     async scheduled(controller, env) {
+      if (config.gateway) {
+        const namespace = env[config.gateway] as DurableObjectNamespace;
+        const stub = namespace.getByName('main') as unknown as { ensure(): Promise<void> };
+        await stub.ensure();
+      }
+
       const job = config.cron?.[controller.cron];
       if (!job) return;
 

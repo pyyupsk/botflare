@@ -17,7 +17,8 @@ const INTERACTION_CREATE = 'INTERACTION_CREATE' as GatewayDispatchEvents.Interac
 /**
  * Creates a Durable Object class that keeps one connection to the Discord Gateway open and runs your
  * handler for each event. Export it under the `class_name` of a SQLite Durable Object binding in your
- * Wrangler config, then call `ensure()` on it from a Cron Trigger so it starts and reconnects.
+ * Wrangler config, and give that binding name to `bot({ gateway })` so a Cron Trigger starts and
+ * reconnects it.
  * It reads `DISCORD_TOKEN` from the Worker environment.
  *
  * @param config What the bot listens to.
@@ -28,18 +29,18 @@ const INTERACTION_CREATE = 'INTERACTION_CREATE' as GatewayDispatchEvents.Interac
  *   arrive over the gateway, so the application needs no Interactions Endpoint URL.
  * @returns The Durable Object class.
  * @example
+ * import { bot } from 'discordflare';
  * import { gateway } from 'discordflare/gateway';
+ *
+ * const app = bot({ commands: [], gateway: 'GATEWAY' });
  *
  * export const Gateway = gateway({
  *   intents: 1 << 9,
+ *   bot: app,
  *   events: { MESSAGE_CREATE: (message, c) => c.send(message.channel_id, 'heard you') },
  * });
  *
- * export default {
- *   async scheduled(_controller, env) {
- *     await env.GATEWAY.getByName('main').ensure();
- *   },
- * };
+ * export default app;
  */
 export function gateway(config: {
   intents: number;
