@@ -6,6 +6,7 @@
   ],
   "type": "module",
   "scripts": {
+    "deadcode": "fallow dead-code",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "lint": "oxlint",
@@ -22,6 +23,7 @@
     "@pyyupsk/nit": "^0.3.0",
     "@types/bun": "latest",
     "eslint-plugin-jsdoc": "^65.4.3",
+    "fallow": "^3.39.0",
     "oxfmt": "^0.76.0",
     "oxlint": "^1.91.0",
     "oxlint-tsgolint": "7",
@@ -34,7 +36,9 @@
     "hooks": {
       "pre-commit": {
         "stages": {
-          "**/*.{ts,js,json,md}": "bun x oxfmt --check {staged_files} && bun x oxlint {staged_files}"
+          "**/*.{ts,js,json,md}": "bun x oxfmt --check {staged_files}",
+          "**/*.{ts,js}": "bun x oxlint {staged_files}",
+          "**/*.{ts,js,json}": "bun run deadcode"
         }
       },
       "commit-msg": "bun x commitlint --edit $1",
