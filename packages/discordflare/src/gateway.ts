@@ -6,13 +6,23 @@ import type {
   GatewayReceivePayload,
 } from 'discord-api-types/v10';
 
-import type { bot, ErrorHandler } from '#index';
-import { interactionCallback, sendMessage } from '#lib/discord';
+import type { Bot, ErrorHandler } from '#index';
+import { interactionCallback, type Send, sendMessage } from '#lib/discord';
 import { afterClose, type Session, Shard } from '#utils/shard';
 
 const GATEWAY = 'wss://gateway.discord.gg';
 const WATCH_MS = 60_000;
 const INTERACTION_CREATE = 'INTERACTION_CREATE' as GatewayDispatchEvents.InteractionCreate;
+
+type GatewayConfig = {
+  intents: number;
+  presence?: GatewayPresenceUpdateData;
+  bot?: Pick<Bot, 'answer'>;
+  onError?: ErrorHandler;
+  events: {
+    [P in GatewayDispatchPayload as P['t']]?: (data: P['d'], c: { send: Send }) => unknown;
+  };
+};
 
 /**
  * Creates a Durable Object class that keeps one connection to the Discord Gateway open and runs your
@@ -26,7 +36,7 @@ const INTERACTION_CREATE = 'INTERACTION_CREATE' as GatewayDispatchEvents.Interac
  * @param config.presence The status the bot shows while it is connected.
  * @param config.events A handler per dispatch event name. `c.send` posts a message to a channel.
  * @param config.onError Gets errors from event handlers and from answering interactions.
- * @param config.bot The bot from {@link bot}. Its handlers answer the commands, buttons and modals that
+ * @param config.bot The bot from `bot()`. Its handlers answer the commands, buttons and modals that
  *   arrive over the gateway, so the application needs no Interactions Endpoint URL.
  * @returns The Durable Object class.
  * @example
@@ -43,18 +53,9 @@ const INTERACTION_CREATE = 'INTERACTION_CREATE' as GatewayDispatchEvents.Interac
  *
  * export default app;
  */
-export function gateway(config: {
-  intents: number;
-  presence?: GatewayPresenceUpdateData;
-  bot?: Pick<ReturnType<typeof bot>, 'answer'>;
-  onError?: ErrorHandler;
-  events: {
-    [P in GatewayDispatchPayload as P['t']]?: (
-      data: P['d'],
-      c: { send: (channelId: string, content: string) => Promise<Error | null> },
-    ) => unknown;
-  };
-}): new (
+export function gateway(
+  config: GatewayConfig,
+): new (
   ctx: DurableObjectState,
   env: { DISCORD_TOKEN: string },
 ) => DurableObject<{ DISCORD_TOKEN: string }> & { ensure(): Promise<void> } {
@@ -77,7 +78,7 @@ export function gateway(config: {
     private dial(): void {
       const saved = this.ctx.storage.kv.get<Session>('session') ?? null;
       const ws = new WebSocket(`${saved?.url ?? GATEWAY}/?v=10&encoding=json`);
-      const send = (channelId: string, content: string): Promise<Error | null> =>
+      const send: Send = (channelId, content) =>
         sendMessage(this.env.DISCORD_TOKEN, channelId, content);
 
       const shard = new Shard(this.env.DISCORD_TOKEN, config, saved, {

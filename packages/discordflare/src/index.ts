@@ -12,7 +12,7 @@ import type {
   InteractionType,
 } from 'discord-api-types/v10';
 
-import { editOriginal, sendMessage } from '#lib/discord';
+import { editOriginal, type Send, sendMessage } from '#lib/discord';
 import type { Command, Context, Option, OptionValue, Options } from '#utils/command';
 import { type Button, message } from '#utils/message';
 import { type Fields, type Modal, fieldValues, modalData } from '#utils/modal';
@@ -128,6 +128,42 @@ function update(content: string, buttons?: Button[]): Response {
   return Response.json(response);
 }
 
+type ButtonContext = {
+  interaction: APIMessageComponentButtonInteraction;
+  reply: typeof reply;
+  update: typeof update;
+  modal: typeof showModal;
+};
+
+type CronContext = { controller: ScheduledController; send: Send };
+
+type BotConfig = {
+  commands: Command[];
+  buttons?: Record<string, (c: ButtonContext) => Response | Promise<Response>>;
+  modals?: Modal[];
+  gateway?: string;
+  onError?: ErrorHandler;
+  cron?: Record<string, (c: CronContext) => void | Promise<void>>;
+};
+
+/** The Worker handler from {@link bot}. */
+export type Bot = {
+  commands: Command[];
+  fetch: (
+    request: Request,
+    env: { DISCORD_PUBLIC_KEY: string },
+    ctx: ExecutionContext,
+  ) => Promise<Response>;
+  scheduled: (
+    controller: ScheduledController,
+    env: { DISCORD_TOKEN: string } & Record<string, unknown>,
+  ) => Promise<void>;
+  answer: (
+    interaction: APIInteraction,
+    ctx: Pick<ExecutionContext, 'waitUntil'>,
+  ) => Promise<Response>;
+};
+
 /**
  * Creates a Worker handler for the Interactions Endpoint URL of a Discord application.
  * It rejects requests without a valid Ed25519 signature, answers Discord's PING check
@@ -152,43 +188,7 @@ function update(content: string, buttons?: Button[]): Response {
  *
  * export default bot({ commands: [command({ name: 'ping', description: 'Pong' }, (c) => c.reply('pong'))] });
  */
-export function bot(config: {
-  commands: Command[];
-  buttons?: Record<
-    string,
-    (c: {
-      interaction: APIMessageComponentButtonInteraction;
-      reply: typeof reply;
-      update: typeof update;
-      modal: typeof showModal;
-    }) => Response | Promise<Response>
-  >;
-  modals?: Modal[];
-  gateway?: string;
-  onError?: ErrorHandler;
-  cron?: Record<
-    string,
-    (c: {
-      controller: ScheduledController;
-      send: (channelId: string, content: string) => Promise<Error | null>;
-    }) => void | Promise<void>
-  >;
-}): {
-  commands: Command[];
-  fetch: (
-    request: Request,
-    env: { DISCORD_PUBLIC_KEY: string },
-    ctx: ExecutionContext,
-  ) => Promise<Response>;
-  scheduled: (
-    controller: ScheduledController,
-    env: { DISCORD_TOKEN: string } & Record<string, unknown>,
-  ) => Promise<void>;
-  answer: (
-    interaction: APIInteraction,
-    ctx: Pick<ExecutionContext, 'waitUntil'>,
-  ) => Promise<Response>;
-} {
+export function bot(config: BotConfig): Bot {
   const commands = new Map(config.commands.map((c) => [c.name, c]));
   const modals = new Map((config.modals ?? []).map((m) => [m.id, m]));
 

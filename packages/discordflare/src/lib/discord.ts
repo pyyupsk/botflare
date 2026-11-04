@@ -46,6 +46,8 @@ export async function editOriginal(
   return null;
 }
 
+export type Send = (channelId: string, content: string) => Promise<Error | null>;
+
 export async function sendMessage(
   token: string,
   channelId: string,
