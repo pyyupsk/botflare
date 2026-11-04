@@ -1,0 +1,108 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "import", "promise"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "warn"
+  },
+  "rules": {
+    "import/first": "error",
+    "import/no-cycle": "error",
+    "import/no-duplicates": "error",
+    "import/no-self-import": "error",
+    "import/no-unassigned-import": "error",
+    "import/no-default-export": "error",
+    "typescript/consistent-type-imports": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/no-non-null-assertion": "error",
+    "typescript/prefer-optional-chain": "error",
+    "typescript/no-unsafe-type-assertion": "off",
+    "typescript/consistent-return": "off",
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-new-func": "error",
+    "no-script-url": "error",
+    "eqeqeq": "error",
+    "no-console": "error",
+    "no-nested-ternary": "error",
+    "no-param-reassign": "error",
+    "no-use-before-define": [
+      "error",
+      {
+        "functions": false,
+        "classes": true,
+        "variables": true
+      }
+    ],
+    "no-var": "error",
+    "prefer-const": "error",
+    "prefer-template": "error",
+    "unicorn/prefer-string-slice": "error",
+    "unicorn/throw-new-error": "error",
+    "promise/no-return-wrap": "error",
+    "promise/prefer-await-to-then": "error",
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": ["../*", "../**"],
+            "message": "Use ./name for the same folder or the # subpath import for anything else."
+          }
+        ]
+      }
+    ]
+  },
+  "env": {
+    "builtin": true,
+    "es2024": true
+  },
+  "options": {
+    "typeAware": true
+  },
+  "ignorePatterns": ["**/worker-configuration.d.ts", "**/dist/**"],
+  "jsPlugins": ["./tools/oxlint/single-dash-filename.js"],
+  "overrides": [
+    {
+      "files": ["**/src/**"],
+      "rules": {
+        "filename/single-dash": "error"
+      }
+    },
+    {
+      "files": ["**/src/utils/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "cloudflare:workers",
+                "message": "utils/ holds pure functions; I/O goes in lib/.",
+                "allowTypeImports": true
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["../*", "../**"],
+                "message": "Use ./name for the same folder or the # subpath import for anything else."
+              },
+              {
+                "group": ["#lib/**"],
+                "message": "utils/ holds pure functions; it can import only types from lib/.",
+                "allowTypeImports": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["**/*.config.ts", "tools/**", "examples/*/src/index.ts", "**/*.d.ts"],
+      "rules": {
+        "import/no-default-export": "off"
+      }
+    }
+  ]
+}

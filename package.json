@@ -1,17 +1,24 @@
 {
   "name": "discordflare-monorepo",
-  "type": "module",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "type": "module",
   "scripts": {
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
     "typecheck": "bun check"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "oxfmt": "^0.76.0",
+    "oxlint": "^1.91.0",
+    "oxlint-tsgolint": "7"
   },
   "peerDependencies": {
     "typescript": "^7"
-  },
-  "workspaces": [
-    "packages/*"
-  ]
+  }
 }

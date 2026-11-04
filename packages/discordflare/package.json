@@ -1,12 +1,12 @@
 {
   "name": "discordflare",
-  "module": "index.ts",
+  "license": "MIT",
   "type": "module",
+  "module": "index.ts",
   "scripts": {
     "typecheck": "bun check"
   },
   "peerDependencies": {
     "typescript": "^7"
-  },
-  "license": "MIT"
+  }
 }
