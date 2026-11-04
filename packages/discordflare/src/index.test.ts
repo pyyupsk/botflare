@@ -58,11 +58,14 @@ it('rejects a signature from another key', async () => {
 it('rejects missing or malformed signature headers', async () => {
   const bare = new Request('https://bot.test/', { method: 'POST', body: ping });
   expect((await bot().fetch(bare, env)).status).toBe(401);
-  for (const bad of ['not-hex', 'aa']) {
-    const req = await signed(ping);
-    req.headers.set('X-Signature-Ed25519', bad);
-    expect((await bot().fetch(req, env)).status).toBe(401);
-  }
+  const statuses = await Promise.all(
+    ['not-hex', 'aa'].map(async (bad) => {
+      const req = await signed(ping);
+      req.headers.set('X-Signature-Ed25519', bad);
+      return (await bot().fetch(req, env)).status;
+    }),
+  );
+  expect(statuses).toEqual([401, 401]);
 });
 
 it('rejects methods other than POST', async () => {

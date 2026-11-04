@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["typescript", "unicorn", "oxc", "import", "promise"],
+  "plugins": ["typescript", "unicorn", "oxc", "import", "promise", "jsdoc"],
   "categories": {
     "correctness": "error",
     "suspicious": "error",
@@ -53,7 +53,17 @@
           }
         ]
       }
-    ]
+    ],
+    "jsdoc/check-tag-names": "error",
+    "jsdoc/empty-tags": "error",
+    "jsdoc/no-blank-blocks": "error",
+    "jsdoc/no-defaults": "error",
+    "jsdoc/require-param-name": "error",
+    "jsdoc/require-param-description": "error",
+    "jsdoc/require-returns-description": "error",
+    "jsdoc/require-throws-description": "error",
+    "jsdoc-js/check-param-names": "error",
+    "jsdoc-js/no-types": "error"
   },
   "env": {
     "builtin": true,
@@ -63,7 +73,13 @@
     "typeAware": true
   },
   "ignorePatterns": ["**/worker-configuration.d.ts", "**/dist/**"],
-  "jsPlugins": ["./tools/oxlint/single-dash-filename.js"],
+  "jsPlugins": [
+    "./tools/oxlint/single-dash-filename.js",
+    {
+      "name": "jsdoc-js",
+      "specifier": "eslint-plugin-jsdoc"
+    }
+  ],
   "overrides": [
     {
       "files": ["**/src/**"],
@@ -103,6 +119,40 @@
       "files": ["**/*.config.{ts,js}", "tools/**", "examples/*/src/index.ts", "**/*.d.ts"],
       "rules": {
         "import/no-default-export": "off"
+      }
+    },
+    {
+      "files": ["packages/*/src/*.ts"],
+      "rules": {
+        "jsdoc-js/require-jsdoc": [
+          "error",
+          {
+            "publicOnly": true,
+            "require": {
+              "FunctionDeclaration": true
+            },
+            "contexts": ["TSTypeAliasDeclaration"]
+          }
+        ],
+        "jsdoc-js/require-description": "error",
+        "jsdoc-js/require-example": [
+          "error",
+          {
+            "contexts": ["FunctionDeclaration"]
+          }
+        ],
+        "jsdoc/require-param": "error",
+        "jsdoc/require-returns": "error"
+      }
+    },
+    {
+      "files": ["**/*.test.ts"],
+      "rules": {
+        "jsdoc-js/require-jsdoc": "off",
+        "jsdoc-js/require-description": "off",
+        "jsdoc-js/require-example": "off",
+        "jsdoc/require-param": "off",
+        "jsdoc/require-returns": "off"
       }
     }
   ]
