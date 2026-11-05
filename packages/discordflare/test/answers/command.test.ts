@@ -144,3 +144,22 @@ it('answers a subcommand inside a group with its own options', async () => {
   });
   expect(missing.status).toBe(404);
 });
+
+it('replies with files as multipart', async () => {
+  const report = bot({
+    commands: [
+      command({ name: 'report', description: 'Report' }, (c) =>
+        c.reply('here', { files: [{ name: 'r.csv', data: 'a,b' }] }),
+      ),
+    ],
+  });
+
+  const res = await report.fetch(await signed(slash('report', [])), env, ctx);
+  const form = await res.formData();
+
+  expect(res.headers.get('content-type')).toMatch(/^multipart\/form-data/);
+  expect(JSON.parse(form.get('payload_json') as string)).toMatchObject({
+    type: 4,
+    data: { content: 'here', attachments: [{ id: '0', filename: 'r.csv' }] },
+  });
+});

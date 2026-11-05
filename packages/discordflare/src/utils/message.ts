@@ -3,12 +3,14 @@ import type { MessageFlags } from 'discord-api-types/v10';
 import type { Schemas } from '#lib/routes';
 import { type Button, buttonComponent } from '#utils/button';
 import { type SelectMenu, selectRow } from '#utils/select';
+import { attachmentsOf, type Upload } from '#utils/upload';
 
 export type MessageOptions = {
   buttons?: Button[];
   selects?: SelectMenu[];
   embeds?: Schemas['RichEmbed'][];
   allowedMentions?: Schemas['MessageAllowedMentionsRequest'];
+  files?: Upload[];
 };
 
 export type ReplyOptions = MessageOptions & { ephemeral?: boolean };
@@ -27,6 +29,7 @@ export function message(
   };
   if (options.ephemeral) data.flags = EPHEMERAL;
   if (options.embeds) data.embeds = options.embeds;
+  if (options.files?.length) data.attachments = attachmentsOf(options.files);
   if (!options.buttons && !options.selects) return data;
 
   const rows = (options.selects ?? []).map(selectRow);

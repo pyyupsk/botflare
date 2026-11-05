@@ -4,6 +4,7 @@ import type { Context } from '#utils/command';
 import { message } from '#utils/message';
 import type { Options } from '#utils/option';
 import { DEFERRED, DEFERRED_EPHEMERAL, DEFERRED_UPDATE } from '#utils/response';
+import type { Upload } from '#utils/upload';
 
 type Work = Parameters<Context<Options>['defer']>[0];
 
@@ -16,6 +17,7 @@ function later(
 ): void {
   const finish = async (): Promise<void> => {
     let edit = message('Something went wrong.');
+    let files: Upload[] | undefined;
     try {
       const done = await work();
       edit =
@@ -26,12 +28,14 @@ function later(
               selects: done.selects,
               embeds: done.embeds,
               allowedMentions: done.allowedMentions,
+              files: done.files,
             });
+      if (typeof done !== 'string') files = done.files;
     } catch (error) {
       await onError?.(error, where);
     }
 
-    const failed = await editOriginal(interaction.application_id, interaction.token, edit);
+    const failed = await editOriginal(interaction.application_id, interaction.token, edit, files);
     if (failed) await onError?.(failed, where);
   };
   ctx.waitUntil(finish());

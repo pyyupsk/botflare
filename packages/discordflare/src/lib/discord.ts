@@ -2,6 +2,7 @@ import { callDiscord } from '#lib/rest';
 import type { Schemas } from '#lib/routes';
 import type { SyncEnv } from '#utils/env';
 import { message, type MessageOptions } from '#utils/message';
+import { type Upload, uploadsOf } from '#utils/upload';
 
 export async function putCommands(
   env: SyncEnv,
@@ -30,6 +31,7 @@ export async function editOriginal(
   applicationId: string,
   token: string,
   body: Schemas['IncomingWebhookUpdateRequestPartial'],
+  files?: Upload[],
 ): Promise<Error | null> {
   const [error] = await callDiscord(
     null,
@@ -38,6 +40,7 @@ export async function editOriginal(
     {
       path: { webhook_id: applicationId, webhook_token: token },
       body,
+      files,
     },
   );
 
@@ -63,7 +66,9 @@ export async function sendMessage(
       selects: options.selects,
       embeds: options.embeds,
       allowedMentions: options.allowedMentions,
+      files: options.files,
     }),
+    files: options.files,
   });
 
   return error;
@@ -74,13 +79,19 @@ export async function interactionCallback(
   token: string,
   response: Response,
 ): Promise<Error | null> {
+  const multipart = response.headers.get('content-type')?.startsWith('multipart/form-data');
+  const { payload, files } = multipart
+    ? await uploadsOf(await response.formData())
+    : { payload: JSON.parse(await response.text()) as unknown, files: [] };
+
   const [error] = await callDiscord(
     null,
     'post',
     '/interactions/{interaction_id}/{interaction_token}/callback',
     {
       path: { interaction_id: id, interaction_token: token },
-      body: JSON.parse(await response.text()) as Schemas['create_interaction_response_body'],
+      body: payload as Schemas['create_interaction_response_body'],
+      files,
     },
   );
 

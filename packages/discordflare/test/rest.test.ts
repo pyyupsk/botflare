@@ -41,3 +41,17 @@ it('types the routes, methods and arguments of the REST API', () => {
     body: { content: 1 },
   });
 });
+
+it('takes files only on routes that take multipart', () => {
+  void rest.post('/channels/{channel_id}/messages', {
+    path: { channel_id: '1' },
+    body: { content: 'x' },
+    files: [{ name: 'a.txt', data: 'x' }],
+  });
+
+  void rest.put('/guilds/{guild_id}/members/{user_id}/roles/{role_id}', {
+    path: { guild_id: '1', user_id: '2', role_id: '3' },
+    // @ts-expect-error adding a role takes no files
+    files: [],
+  });
+});

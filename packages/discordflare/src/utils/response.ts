@@ -1,6 +1,7 @@
 import type { Schemas } from '#lib/routes';
 import { message, type MessageOptions, type ReplyOptions } from '#utils/message';
 import { type Modal, modalData } from '#utils/modal';
+import { formOf } from '#utils/upload';
 
 export const PONG: Schemas['PongInteractionCallbackRequest'] = { type: 1 };
 export const DEFERRED: Schemas['CreateMessageInteractionCallbackRequest'] = { type: 5 };
@@ -11,13 +12,19 @@ export const DEFERRED_EPHEMERAL: Schemas['CreateMessageInteractionCallbackReques
 
 export const DEFERRED_UPDATE: Schemas['UpdateMessageInteractionCallbackRequest'] = { type: 6 };
 
+function answer(response: object, options?: MessageOptions): Response {
+  if (!options?.files?.length) return Response.json(response);
+
+  return new Response(formOf(response, options.files));
+}
+
 export function replyResponse(content: string, options?: ReplyOptions): Response {
   const response: Schemas['CreateMessageInteractionCallbackRequest'] = {
     type: 4,
     data: message(content, options),
   };
 
-  return Response.json(response);
+  return answer(response, options);
 }
 
 export function updateResponse(content: string, options?: MessageOptions): Response {
@@ -26,7 +33,7 @@ export function updateResponse(content: string, options?: MessageOptions): Respo
     data: message(content, options),
   };
 
-  return Response.json(response);
+  return answer(response, options);
 }
 
 export function modalResponse(form: Modal, value?: string): Response {

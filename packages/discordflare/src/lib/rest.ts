@@ -1,11 +1,12 @@
 import type { Routes } from '#lib/routes';
+import { formOf, type Upload } from '#utils/upload';
 
 const API = 'https://discord.com/api/v10';
 const TRIES = 3;
 
 type Method = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
-type Init = { path?: Record<string, string>; query?: object; body?: unknown };
+type Init = { path?: Record<string, string>; query?: object; body?: unknown; files?: Upload[] };
 
 type Route<M extends Method> = {
   [K in keyof Routes]: M extends keyof Routes[K] ? K : never;
@@ -69,8 +70,13 @@ async function request<T>(
 
   const headers: Record<string, string> = {};
   if (token) headers.Authorization = `Bot ${token}`;
-  if (init.body !== undefined) headers['Content-Type'] = 'application/json';
-  const body = init.body === undefined ? undefined : JSON.stringify(init.body);
+  let body: string | FormData | undefined;
+  if (init.files?.length) {
+    body = formOf(init.body, init.files);
+  } else if (init.body !== undefined) {
+    headers['Content-Type'] = 'application/json';
+    body = JSON.stringify(init.body);
+  }
 
   const send = async (attempt: number): Promise<[Error, null] | [null, T]> => {
     const res = await fetch(url, { method: method.toUpperCase(), headers, body });

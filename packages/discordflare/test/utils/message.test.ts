@@ -55,3 +55,13 @@ it('puts select menus above the buttons', () => {
 
   expect(data.components?.map((row) => row.type === 1 && row.components[0]?.type)).toEqual([6, 2]);
 });
+
+it('lists each file as an attachment of the message', () => {
+  const data = message('report', {
+    files: [{ name: 'report.csv', data: 'a,b', description: 'The report' }],
+  });
+
+  expect(data.attachments).toEqual([
+    { id: '0', filename: 'report.csv', description: 'The report' },
+  ]);
+});
