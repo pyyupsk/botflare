@@ -12,7 +12,7 @@ import { createRest, type Rest } from '#lib/rest';
  * A request that is not a GET takes `reason`, the text that shows in the audit log of the server.
  *
  * @example
- * import { rest } from 'discordflare';
+ * import { rest } from 'botflare';
  *
  * const [error, member] = await rest.get('/guilds/{guild_id}/members/{user_id}', {
  *   path: { guild_id: guildId, user_id: userId },

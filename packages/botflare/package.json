@@ -1,16 +1,28 @@
 {
-  "name": "discordflare",
+  "name": "botflare",
   "version": "0.0.0",
-  "homepage": "https://github.com/pyyupsk/discordflare#readme",
-  "bugs": "https://github.com/pyyupsk/discordflare/issues",
+  "description": "Discord bots on Cloudflare Workers, with gateway events, typed REST and Durable Objects",
+  "keywords": [
+    "cloudflare",
+    "cloudflare-workers",
+    "discord",
+    "discord-api",
+    "discord-bot",
+    "durable-objects",
+    "interactions",
+    "slash-commands",
+    "typescript"
+  ],
+  "homepage": "https://github.com/pyyupsk/botflare#readme",
+  "bugs": "https://github.com/pyyupsk/botflare/issues",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pyyupsk/discordflare.git",
-    "directory": "packages/discordflare"
+    "url": "git+https://github.com/pyyupsk/botflare.git",
+    "directory": "packages/botflare"
   },
   "bin": {
-    "discordflare": "./dist/cli.mjs"
+    "botflare": "./dist/cli.mjs"
   },
   "files": [
     "dist"

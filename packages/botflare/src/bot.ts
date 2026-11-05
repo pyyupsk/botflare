@@ -96,7 +96,7 @@ async function startGateway(env: Record<string, unknown>, name: string): Promise
  * @returns The Worker handler. Export it as the default export of your Worker. Pass it to
  *   `gateway({ bot })` to answer interactions that arrive over the gateway too.
  * @example
- * import { bot, command } from 'discordflare';
+ * import { bot, command } from 'botflare';
  *
  * export default bot({ commands: [command({ name: 'ping', description: 'Pong' }, (c) => c.reply('pong'))] });
  */

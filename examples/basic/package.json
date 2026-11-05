@@ -1,15 +1,15 @@
 {
-  "name": "discordflare-example-basic",
+  "name": "botflare-example-basic",
   "private": true,
   "type": "module",
   "scripts": {
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
-    "sync": "discordflare sync src/index.ts",
+    "sync": "botflare sync src/index.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "discordflare": "workspace:*"
+    "botflare": "workspace:*"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261104.1",

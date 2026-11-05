@@ -44,8 +44,8 @@ type GatewayConfig = {
  *   arrive over the gateway, so the application needs no Interactions Endpoint URL.
  * @returns The Durable Object class.
  * @example
- * import { bot } from 'discordflare';
- * import { gateway } from 'discordflare/gateway';
+ * import { bot } from 'botflare';
+ * import { gateway } from 'botflare/gateway';
  *
  * const app = bot({ commands: [], gateway: 'GATEWAY' });
  *

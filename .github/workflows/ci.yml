@@ -23,7 +23,7 @@ jobs:
 
       # The example reads the types of the built library.
       - run: bun run build
-        working-directory: packages/discordflare
+        working-directory: packages/botflare
 
       - run: bun run typecheck
       - run: bun run lint

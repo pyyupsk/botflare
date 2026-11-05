@@ -1,12 +1,12 @@
-# discordflare
+# botflare
 
-[![NPM version](https://img.shields.io/npm/v/discordflare?color=f38020&label=)](https://www.npmjs.com/package/discordflare)
+[![NPM version](https://img.shields.io/npm/v/botflare?color=f38020&label=)](https://www.npmjs.com/package/botflare)
 
 Build Discord bots that run on Cloudflare Workers, with types from the official Discord API spec.
 
-[👉 Example bot](https://github.com/pyyupsk/discordflare/tree/main/examples/basic) · [👉 Discord API spec](https://github.com/discord/discord-api-spec)
+[👉 Example bot](https://github.com/pyyupsk/botflare/tree/main/examples/basic) · [👉 Discord API spec](https://github.com/discord/discord-api-spec)
 
-discordflare is an unofficial library. It is not affiliated with, endorsed by, or sponsored by Discord Inc. or Cloudflare, Inc.
+botflare is an unofficial library. It is not affiliated with, endorsed by, or sponsored by Discord Inc. or Cloudflare, Inc.
 
 ## Features
 
@@ -16,19 +16,19 @@ discordflare is an unofficial library. It is not affiliated with, endorsed by, o
 - `rest` for every Discord route, with path, query, body and result typed from the Discord API spec
 - Cron jobs that post to channels, and `onError` for work that runs after Discord has its answer
 - Messages ping nobody unless you allow it, even for `@everyone` in the text
-- `discordflare sync` sends your commands to Discord from the command line
+- `botflare sync` sends your commands to Discord from the command line
 
 ## Install
 
 ```sh
-npm install discordflare
+npm install botflare
 ```
 
 ## Usage
 
 ```ts
-import { bot, command, option } from 'discordflare';
-import { gateway } from 'discordflare/gateway';
+import { bot, command, option } from 'botflare';
+import { gateway } from 'botflare/gateway';
 
 const roll = command(
   {
@@ -71,25 +71,25 @@ Bind the `Gateway` class in `wrangler.jsonc`:
 Then run it:
 
 ```sh
-npx discordflare sync src/index.ts # send the commands to Discord
+npx botflare sync src/index.ts # send the commands to Discord
 npx wrangler dev                   # open the local URL once to start the gateway
 ```
 
-`discordflare sync` reads `DISCORD_TOKEN`, `DISCORD_APPLICATION_ID` and, for one test server, `DISCORD_GUILD_ID`. The Worker reads `DISCORD_TOKEN`, and `DISCORD_PUBLIC_KEY` for interactions over HTTP.
+`botflare sync` reads `DISCORD_TOKEN`, `DISCORD_APPLICATION_ID` and, for one test server, `DISCORD_GUILD_ID`. The Worker reads `DISCORD_TOKEN`, and `DISCORD_PUBLIC_KEY` for interactions over HTTP.
 
 ## API
 
-| Export                                | Use                                                                                           |
-| ------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `bot(config)`                         | The Worker handler. Checks signatures and answers commands, buttons, menus and modals         |
-| `command(config, run)`                | A slash command, or a command with `subcommands`                                              |
-| `option(type, config)`                | An option of a command, with `choices`, limits or `autocomplete`                              |
-| `contextMenu('user' \| 'message', …)` | An item in the Apps menu of a user or a message                                               |
-| `select(type, config, run)`           | A select menu of strings, users, roles, channels or mentionables                              |
-| `modal(config, run)`                  | A form in a popup                                                                             |
-| `gateway(config)`                     | A Durable Object class that holds the Discord Gateway connection, from `discordflare/gateway` |
-| `rest`                                | Calls any Discord route as the bot and returns `[error, data]`                                |
-| `mention`, `time`                     | Mentions and timestamps for message text                                                      |
+| Export                                | Use                                                                                       |
+| ------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `bot(config)`                         | The Worker handler. Checks signatures and answers commands, buttons, menus and modals     |
+| `command(config, run)`                | A slash command, or a command with `subcommands`                                          |
+| `option(type, config)`                | An option of a command, with `choices`, limits or `autocomplete`                          |
+| `contextMenu('user' \| 'message', …)` | An item in the Apps menu of a user or a message                                           |
+| `select(type, config, run)`           | A select menu of strings, users, roles, channels or mentionables                          |
+| `modal(config, run)`                  | A form in a popup                                                                         |
+| `gateway(config)`                     | A Durable Object class that holds the Discord Gateway connection, from `botflare/gateway` |
+| `rest`                                | Calls any Discord route as the bot and returns `[error, data]`                            |
+| `mention`, `time`                     | Mentions and timestamps for message text                                                  |
 
 A handler answers with one of these:
 
@@ -120,7 +120,7 @@ Turn on privileged intents, such as `MessageContent`, in the Developer Portal fi
 ## REST
 
 ```ts
-import { rest } from 'discordflare';
+import { rest } from 'botflare';
 
 const [error, member] = await rest.get('/guilds/{guild_id}/members/{user_id}', {
   path: { guild_id, user_id },
@@ -132,8 +132,8 @@ On a 429, `rest` waits for `retry_after` and tries again, up to three tries in a
 
 ## Why?
 
-discord.js and discord.py expect a process that stays on, with a WebSocket and a cache in memory. A Worker runs per request and then stops. discordflare is built for that model from the start: it answers interactions over HTTP, keeps the gateway connection in a Durable Object, and takes its REST types from the spec that Discord publishes. When Discord adds a route, one script updates the types.
+discord.js and discord.py expect a process that stays on, with a WebSocket and a cache in memory. A Worker runs per request and then stops. botflare is built for that model from the start: it answers interactions over HTTP, keeps the gateway connection in a Durable Object, and takes its REST types from the spec that Discord publishes. When Discord adds a route, one script updates the types.
 
 ## License
 
-[MIT](https://github.com/pyyupsk/discordflare/blob/main/LICENSE) License © 2026 [Pongsakorn Thipayanate](https://github.com/pyyupsk)
+[MIT](https://github.com/pyyupsk/botflare/blob/main/LICENSE) License © 2026 [Pongsakorn Thipayanate](https://github.com/pyyupsk)

@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "discordflare",
+      "name": "botflare",
       "devDependencies": {
         "@cloudflare/vitest-plugin": "^1.5.1",
         "@commitlint/cli": "^21.2.4",
@@ -23,20 +23,20 @@
       },
     },
     "examples/basic": {
-      "name": "discordflare-example-basic",
+      "name": "botflare-example-basic",
       "dependencies": {
-        "discordflare": "workspace:*",
+        "botflare": "workspace:*",
       },
       "devDependencies": {
         "@cloudflare/workers-types": "^5.20261104.1",
         "wrangler": "^4.157.0",
       },
     },
-    "packages/discordflare": {
-      "name": "discordflare",
+    "packages/botflare": {
+      "name": "botflare",
       "version": "0.0.0",
       "bin": {
-        "discordflare": "./dist/cli.mjs",
+        "botflare": "./dist/cli.mjs",
       },
       "dependencies": {
         "@clack/prompts": "^1.8.1",
@@ -546,6 +546,10 @@
 
     "blake3-wasm": ["blake3-wasm@2.1.5", "", {}, "sha512-F1+K8EbfOZE49dtoPtmxUQrpXaBIl3ICvasLh+nJta0xkz+9kF/7uet9fLnwKqhDrmj6g+6K3Tw9yQPUg2ka5g=="],
 
+    "botflare": ["botflare@workspace:packages/botflare"],
+
+    "botflare-example-basic": ["botflare-example-basic@workspace:examples/basic"],
+
     "brace-expansion": ["brace-expansion@5.0.12", "", { "dependencies": { "balanced-match": "^4.0.2" } }, "sha512-YovQ3rzhaLMIrDjNDMkNS01tea93qhEhG5xy8f6+R0l+dw3Ki+5sCoIoI942iuLZTHWogWktgwVDhU09iNEimQ=="],
 
     "bun-types": ["bun-types@1.4.4", "", { "dependencies": { "@types/node": "*", "undici-types": "*" } }, "sha512-yjrJh5oGX7mMPKGd19YXyIjmEuj4G4zNC30bs7PM9Az7NQ3ndF3j6hbeRdvJTRQEhJ/FYQwW0a2moweEi2hMxQ=="],
@@ -585,10 +589,6 @@
     "detect-libc": ["detect-libc@2.1.2", "", {}, "sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ=="],
 
     "discord-api-types": ["discord-api-types@0.38.57", "", {}, "sha512-R1CTSSt4RshqCq23j2Xq2ZscvzB4LzG9OB1CYQdKUGdw8Ti/oF/72EEtK2mNpagG/Vj9NcBT7dw9lKLf+Dacfg=="],
-
-    "discordflare": ["discordflare@workspace:packages/discordflare"],
-
-    "discordflare-example-basic": ["discordflare-example-basic@workspace:examples/basic"],
 
     "dts-resolver": ["dts-resolver@3.0.0", "", { "peerDependencies": { "oxc-resolver": ">=11.0.0" }, "optionalPeers": ["oxc-resolver"] }, "sha512-1T1f+z+4tl9XD+m+0HBgWoL/nm0bOIffyWaUuUSBlFg/86IWvfx+wjNaO/ybU0AJzG9/Mi5hBUgGV6zCmWEN7Q=="],
 

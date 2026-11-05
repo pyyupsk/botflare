@@ -1,5 +1,5 @@
-import { bot, command, option, time } from 'discordflare';
-import { gateway } from 'discordflare/gateway';
+import { bot, command, option, time } from 'botflare';
+import { gateway } from 'botflare/gateway';
 
 const ping = command({ name: 'ping', description: 'Check that the bot answers' }, (c) =>
   c.reply(`pong, ${time(Date.now(), 'long-time')}`),

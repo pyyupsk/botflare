@@ -32,12 +32,12 @@ registerHooks({
 });
 
 async function main(): Promise<number> {
-  intro('discordflare sync');
+  intro('botflare sync');
 
   const { positionals } = parseArgs({ allowPositionals: true });
   const [task, entry] = positionals;
   if (task !== 'sync' || !entry) {
-    cancel('Usage: discordflare sync <worker entry>');
+    cancel('Usage: botflare sync <worker entry>');
     return 1;
   }
 

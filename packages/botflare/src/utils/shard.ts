@@ -138,7 +138,7 @@ export class Shard {
       d: {
         token: this.token,
         intents: this.identity.intents,
-        properties: { os: 'cloudflare-workers', browser: 'discordflare', device: 'discordflare' },
+        properties: { os: 'cloudflare-workers', browser: 'botflare', device: 'botflare' },
         ...(this.identity.presence && { presence: this.identity.presence }),
       },
     });
