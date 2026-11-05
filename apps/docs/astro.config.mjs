@@ -5,6 +5,7 @@ import { defineConfig } from 'astro/config';
 import starlightTypeDoc, { typeDocSidebarGroup } from 'starlight-typedoc';
 
 export default defineConfig({
+  site: 'https://botflare.fasu.dev',
   integrations: [
     starlight({
       title: 'botflare',
