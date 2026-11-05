@@ -18,7 +18,10 @@ import {
   type OptionValue,
   type Options,
   type ChannelType,
+  type AutocompleteContext,
+  findCommand,
   optionValues,
+  type Suggestion,
 } from '#utils/command';
 import { message, type MessageOptions, type ReplyOptions } from '#utils/message';
 import { type Fields, type Modal, fieldValues, modalData } from '#utils/modal';
@@ -27,7 +30,9 @@ import { verify } from '#utils/verify';
 const PING: InteractionType.Ping = 1;
 const APPLICATION_COMMAND: InteractionType.ApplicationCommand = 2;
 const MESSAGE_COMPONENT: InteractionType.MessageComponent = 3;
+const AUTOCOMPLETE: InteractionType.ApplicationCommandAutocomplete = 4;
 const MODAL_SUBMIT: InteractionType.ModalSubmit = 5;
+const MAX_CHOICES = 25;
 const CHAT_INPUT: ApplicationCommandType.ChatInput = 1;
 const BUTTON: ComponentType.Button = 2;
 const PONG: Schemas['PongInteractionCallbackRequest'] = { type: 1 };
@@ -67,6 +72,11 @@ type Choice<T extends keyof OptionValue> = T extends 'string'
  * `minLength` and `maxLength`, an `integer` or `number` option takes `min` and `max`, and a
  * `channel` option takes `channelTypes`, such as `['text', 'forum']`.
  *
+ * Instead of fixed `choices`, a `string`, `integer` or `number` option can take `autocomplete`: a
+ * function that gets what the user has typed so far as `c.value` and returns up to 25 suggestions,
+ * as plain values or as `{ name, value }`. If it throws, `onError` gets the error and Discord shows
+ * no suggestions.
+ *
  * @param type The value type Discord asks the user for. `user`, `channel` and `role` give the full
  *   object Discord sends with the command, not only its id.
  * @param config How Discord shows the option.
@@ -83,7 +93,13 @@ export function option<
   const C extends Record<string, Choice<T>> = never,
 >(
   type: T,
-  config: { description: string; required?: R; choices?: C } & OptionLimits<T>,
+  config: { description: string; required?: R; choices?: C } & OptionLimits<T> & {
+      autocomplete?: [Choice<T>] extends [never]
+        ? never
+        : [C] extends [never]
+          ? (c: AutocompleteContext) => Suggestion<Choice<T>>[] | Promise<Suggestion<Choice<T>>[]>
+          : never;
+    },
 ): Option<T, R, [C] extends [never] ? OptionValue[T] : C[keyof C]> {
   const built: Option = { ...config, type, required: config.required ?? false };
 
@@ -305,23 +321,41 @@ export function bot(config: BotConfig): Bot {
       });
     }
 
+    if (interaction.type === AUTOCOMPLETE) {
+      const { found, given, path } = findCommand(commands, interaction.data);
+      const focused = given.find((o) => 'focused' in o && o.focused);
+      const suggest =
+        found && 'options' in found && focused
+          ? found.options[focused.name]?.autocomplete
+          : undefined;
+      if (!suggest || !focused || !('value' in focused)) return new Response(null, { status: 404 });
+
+      let suggestions: Suggestion<unknown>[] = [];
+      try {
+        suggestions = await suggest({ interaction, value: String(focused.value) });
+      } catch (error) {
+        await config.onError?.(error, `${path} autocomplete`);
+      }
+
+      const choices = suggestions
+        .slice(0, MAX_CHOICES)
+        .map((s) => (typeof s === 'object' && s !== null ? s : { name: String(s), value: s }));
+      const response = {
+        type: 8,
+        data: { choices },
+      } as Schemas['ApplicationCommandAutocompleteCallbackRequest'];
+
+      return Response.json(response);
+    }
+
     if (interaction.type !== APPLICATION_COMMAND || interaction.data.type !== CHAT_INPUT) {
       return new Response(null, { status: 400 });
     }
 
-    const path = [interaction.data.name];
-    let found = commands.get(interaction.data.name);
-    let given = interaction.data.options ?? [];
-    while (found && 'subcommands' in found) {
-      const picked = given[0];
-      found = found.subcommands.find((child) => child.name === picked?.name);
-      path.push(picked?.name ?? '');
-      given = picked && 'options' in picked ? (picked.options ?? []) : [];
-    }
-    if (!found) return new Response(null, { status: 404 });
+    const { found, given, path: where } = findCommand(commands, interaction.data);
+    if (!found || !('run' in found)) return new Response(null, { status: 404 });
 
     const values = optionValues(given, interaction.data.resolved);
-    const where = `/${path.join(' ')}`;
 
     const defer: Context<Options>['defer'] = (work, options) => {
       const finish = async (): Promise<void> => {

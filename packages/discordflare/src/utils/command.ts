@@ -1,4 +1,5 @@
 import type {
+  APIApplicationCommandAutocompleteInteraction,
   APIApplicationCommandInteractionDataOption,
   APIChatInputApplicationCommandInteraction,
   APIChatInputApplicationCommandInteractionData,
@@ -61,7 +62,15 @@ export type Option<
   minLength?: number;
   maxLength?: number;
   channelTypes?: ChannelType[];
+  autocomplete?: (c: AutocompleteContext) => Suggestion<V>[] | Promise<Suggestion<V>[]>;
 };
+
+export type AutocompleteContext = {
+  interaction: APIApplicationCommandAutocompleteInteraction;
+  value: string;
+};
+
+export type Suggestion<V> = V | { name: string; value: V };
 
 export type Options = Record<string, Option<keyof OptionValue, boolean, unknown>>;
 
@@ -127,6 +136,7 @@ function optionsPayload(options: Options): CommandOption[] {
       if (o.minLength !== undefined) built.min_length = o.minLength;
       if (o.maxLength !== undefined) built.max_length = o.maxLength;
       if (o.channelTypes) built.channel_types = o.channelTypes.map((t) => CHANNEL_TYPES[t]);
+      if (o.autocomplete) built.autocomplete = true;
 
       return built as CommandOption;
     })
@@ -160,6 +170,27 @@ export function payload(command: Command): Schemas['ApplicationCommandUpdateRequ
       : optionsPayload(command.options);
 
   return { type: 1, name, description, options };
+}
+
+export function findCommand(
+  commands: Map<string, Command>,
+  data: { name: string; options?: APIApplicationCommandInteractionDataOption[] },
+): {
+  found: Command | undefined;
+  given: APIApplicationCommandInteractionDataOption[];
+  path: string;
+} {
+  const path = [data.name];
+  let found = commands.get(data.name);
+  let given = data.options ?? [];
+  while (found && 'subcommands' in found) {
+    const picked = given[0];
+    found = found.subcommands.find((child) => child.name === picked?.name);
+    path.push(picked?.name ?? '');
+    given = picked && 'options' in picked ? (picked.options ?? []) : [];
+  }
+
+  return { found, given, path: `/${path.join(' ')}` };
 }
 
 export function optionValues(

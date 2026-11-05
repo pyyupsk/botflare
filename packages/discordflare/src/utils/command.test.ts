@@ -133,3 +133,18 @@ it('sends subcommands as type 1 and groups as type 2', () => {
     ],
   });
 });
+
+it('tells Discord which options autocomplete', () => {
+  const find = command(
+    {
+      name: 'find',
+      description: 'Find',
+      options: { q: option('string', { description: 'Query', autocomplete: () => [] }) },
+    },
+    (c) => c.reply('ok'),
+  );
+
+  expect(payload(find).options).toEqual([
+    { name: 'q', description: 'Query', type: 3, required: false, autocomplete: true },
+  ]);
+});
