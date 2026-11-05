@@ -1,30 +1,34 @@
-import type {
-  RESTPatchAPIWebhookWithTokenMessageJSONBody,
-  RESTPutAPIApplicationCommandsJSONBody,
-} from 'discord-api-types/v10';
-
 import { callDiscord } from '#lib/rest';
+import type { Schemas } from '#lib/routes';
 import type { SyncEnv } from '#utils/env';
 
 export async function putCommands(
   env: SyncEnv,
-  body: RESTPutAPIApplicationCommandsJSONBody,
+  body: Schemas['ApplicationCommandUpdateRequest'][],
 ): Promise<[Error, null] | [null, number]> {
-  const route = env.guildId
-    ? '/applications/{application_id}/guilds/{guild_id}/commands'
-    : '/applications/{application_id}/commands';
-  const path = { application_id: env.applicationId, guild_id: env.guildId ?? '' };
-
-  const [error, saved] = await callDiscord<unknown[]>(env.token, 'put', route, { path, body });
+  const [error, saved] = env.guildId
+    ? await callDiscord(
+        env.token,
+        'put',
+        '/applications/{application_id}/guilds/{guild_id}/commands',
+        {
+          path: { application_id: env.applicationId, guild_id: env.guildId },
+          body,
+        },
+      )
+    : await callDiscord(env.token, 'put', '/applications/{application_id}/commands', {
+        path: { application_id: env.applicationId },
+        body,
+      });
   if (error) return [error, null];
 
-  return [null, saved.length];
+  return [null, saved?.length ?? 0];
 }
 
 export async function editOriginal(
   applicationId: string,
   token: string,
-  body: RESTPatchAPIWebhookWithTokenMessageJSONBody,
+  body: Schemas['IncomingWebhookUpdateRequestPartial'],
 ): Promise<Error | null> {
   const [error] = await callDiscord(
     null,
@@ -65,7 +69,7 @@ export async function interactionCallback(
     '/interactions/{interaction_id}/{interaction_token}/callback',
     {
       path: { interaction_id: id, interaction_token: token },
-      body: await response.json(),
+      body: JSON.parse(await response.text()) as Schemas['create_interaction_response_body'],
     },
   );
 

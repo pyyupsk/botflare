@@ -4893,6 +4893,7 @@ type S = {
   execute_slack_compatible_webhook_body: S['SlackWebhook'];
   execute_slack_compatible_webhook_result: string | null;
 };
+export type { S as Schemas };
 export type Routes = {
   '/applications/@me': {
     get: { args: []; result: S['get_my_application_result'] };

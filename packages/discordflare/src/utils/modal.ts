@@ -1,9 +1,6 @@
-import type {
-  APIModalInteractionResponseCallbackData,
-  APIModalSubmissionComponent,
-  APIModalSubmitInteraction,
-} from 'discord-api-types/v10';
+import type { APIModalSubmissionComponent, APIModalSubmitInteraction } from 'discord-api-types/v10';
 
+import type { Schemas } from '#lib/routes';
 import type { ReplyOptions } from '#utils/message';
 
 export type Fields = Record<
@@ -24,7 +21,7 @@ export type Modal<F extends Fields = Fields> = {
   }): Response | Promise<Response>;
 };
 
-export function modalData(modal: Modal): APIModalInteractionResponseCallbackData {
+export function modalData(modal: Modal): Schemas['ModalInteractionCallbackRequestData'] {
   return {
     custom_id: modal.id,
     title: modal.title,

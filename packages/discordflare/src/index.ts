@@ -2,19 +2,15 @@ import { env as workerEnv } from 'cloudflare:workers';
 import type {
   APIChatInputApplicationCommandInteraction,
   APIInteraction,
-  APIInteractionResponseChannelMessageWithSource,
-  APIInteractionResponseDeferredChannelMessageWithSource,
-  APIInteractionResponsePong,
-  APIInteractionResponseUpdateMessage,
   APIMessageComponentButtonInteraction,
-  APIModalInteractionResponse,
   ApplicationCommandType,
   ComponentType,
   InteractionType,
 } from 'discord-api-types/v10';
 
 import { editOriginal, type Send, sendMessage } from '#lib/discord';
-import { callDiscord, type Rest } from '#lib/rest';
+import { createRest, type Rest } from '#lib/rest';
+import type { Schemas } from '#lib/routes';
 import {
   type Command,
   type Context,
@@ -33,9 +29,9 @@ const MESSAGE_COMPONENT: InteractionType.MessageComponent = 3;
 const MODAL_SUBMIT: InteractionType.ModalSubmit = 5;
 const CHAT_INPUT: ApplicationCommandType.ChatInput = 1;
 const BUTTON: ComponentType.Button = 2;
-const PONG: APIInteractionResponsePong = { type: 1 };
-const DEFERRED: APIInteractionResponseDeferredChannelMessageWithSource = { type: 5 };
-const DEFERRED_EPHEMERAL: APIInteractionResponseDeferredChannelMessageWithSource = {
+const PONG: Schemas['PongInteractionCallbackRequest'] = { type: 1 };
+const DEFERRED: Schemas['CreateMessageInteractionCallbackRequest'] = { type: 5 };
+const DEFERRED_EPHEMERAL: Schemas['CreateMessageInteractionCallbackRequest'] = {
   type: 5,
   data: { flags: 64 },
 };
@@ -122,13 +118,13 @@ export function modal<const F extends Fields>(
 }
 
 function showModal(form: Modal): Response {
-  const response: APIModalInteractionResponse = { type: 9, data: modalData(form) };
+  const response: Schemas['ModalInteractionCallbackRequest'] = { type: 9, data: modalData(form) };
 
   return Response.json(response);
 }
 
 function reply(content: string, options?: ReplyOptions): Response {
-  const response: APIInteractionResponseChannelMessageWithSource = {
+  const response: Schemas['CreateMessageInteractionCallbackRequest'] = {
     type: 4,
     data: message(content, options),
   };
@@ -137,7 +133,7 @@ function reply(content: string, options?: ReplyOptions): Response {
 }
 
 function update(content: string, options?: { buttons?: Button[] }): Response {
-  const response: APIInteractionResponseUpdateMessage = {
+  const response: Schemas['UpdateMessageInteractionCallbackRequest'] = {
     type: 7,
     data: message(content, options),
   };
@@ -182,15 +178,6 @@ export type Bot = {
   ) => Promise<Response>;
 };
 
-const call =
-  (method: 'get' | 'post' | 'put' | 'patch' | 'delete') =>
-  async (route: string, init?: object): Promise<[Error, null] | [null, unknown]> => {
-    const token = (workerEnv as { DISCORD_TOKEN?: unknown }).DISCORD_TOKEN;
-    if (typeof token !== 'string') return [new Error('DISCORD_TOKEN is not set'), null];
-
-    return callDiscord(token, method, route, init);
-  };
-
 /**
  * Calls the Discord REST API as the bot, with `DISCORD_TOKEN` from the Worker environment. Each
  * method takes a route from the Discord API spec, such as `'/guilds/{guild_id}/roles'`, and
@@ -208,13 +195,9 @@ const call =
  *   path: { guild_id: guildId, user_id: member.user.id, role_id: roleId },
  * });
  */
-export const rest: Rest = {
-  get: call('get'),
-  post: call('post'),
-  put: call('put'),
-  patch: call('patch'),
-  delete: call('delete'),
-} as Rest;
+export const rest: Rest = createRest(
+  () => (workerEnv as { DISCORD_TOKEN?: unknown }).DISCORD_TOKEN,
+);
 
 async function startGateway(env: Record<string, unknown>, name: string): Promise<void> {
   const namespace = env[name] as DurableObjectNamespace;

@@ -7,20 +7,51 @@ type Method = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
 type Init = { path?: Record<string, string>; query?: object; body?: unknown };
 
+type Route<M extends Method> = {
+  [K in keyof Routes]: M extends keyof Routes[K] ? K : never;
+}[keyof Routes];
+
 type Operation<P extends keyof Routes, M extends Method> =
   Routes[P] extends Record<M, infer O extends { args: unknown[]; result: unknown }> ? O : never;
 
+type Result<P extends keyof Routes, M extends Method> = Promise<
+  [Error, null] | [null, Operation<P, M>['result']]
+>;
+
 /** Calls the Discord REST API. Each method takes a route from the Discord API spec. */
 export type Rest = {
-  [M in Method]: <
-    P extends { [K in keyof Routes]: M extends keyof Routes[K] ? K : never }[keyof Routes],
-  >(
-    path: P,
-    ...args: Operation<P, M>['args']
-  ) => Promise<[Error, null] | [null, Operation<P, M>['result']]>;
+  [M in Method]: <P extends Route<M>>(path: P, ...args: Operation<P, M>['args']) => Result<P, M>;
 };
 
-export async function callDiscord<T>(
+export function callDiscord<M extends Method, P extends Route<M>>(
+  token: string | null,
+  method: M,
+  route: P,
+  ...args: Operation<P, M>['args']
+): Result<P, M> {
+  return request(token, method, route, args[0] as Init | undefined);
+}
+
+export function createRest(token: () => unknown): Rest {
+  const call =
+    (method: Method) =>
+    async (route: string, init?: Init): Promise<[Error, null] | [null, unknown]> => {
+      const value = token();
+      if (typeof value !== 'string') return [new Error('DISCORD_TOKEN is not set'), null];
+
+      return request(value, method, route, init);
+    };
+
+  return {
+    get: call('get'),
+    post: call('post'),
+    put: call('put'),
+    patch: call('patch'),
+    delete: call('delete'),
+  } as Rest;
+}
+
+async function request<T>(
   token: string | null,
   method: Method,
   route: string,

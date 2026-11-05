@@ -1,14 +1,13 @@
 import type {
-  APIApplicationCommandBasicOption,
   APIChatInputApplicationCommandInteraction,
   APIChatInputApplicationCommandInteractionData,
   APIInteractionDataResolvedChannel,
   APIRole,
   APIUser,
   ApplicationCommandOptionType,
-  RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord-api-types/v10';
 
+import type { Schemas } from '#lib/routes';
 import type { Button, ReplyOptions } from '#utils/message';
 import type { Modal } from '#utils/modal';
 
@@ -66,17 +65,14 @@ const USER: ApplicationCommandOptionType.User = 6;
 const CHANNEL: ApplicationCommandOptionType.Channel = 7;
 const ROLE: ApplicationCommandOptionType.Role = 8;
 
-export function payload(command: Command): RESTPostAPIChatInputApplicationCommandsJSONBody {
+export function payload(command: Command): Schemas['ApplicationCommandUpdateRequest'] {
   const options = Object.entries(command.options)
-    .map(
-      ([name, o]) =>
-        ({
-          name,
-          description: o.description,
-          type: OPTION_TYPE[o.type],
-          required: o.required,
-        }) as APIApplicationCommandBasicOption,
-    )
+    .map(([name, o]) => ({
+      name,
+      description: o.description,
+      type: OPTION_TYPE[o.type],
+      required: o.required,
+    }))
     .toSorted((a, b) => Number(b.required) - Number(a.required));
 
   return { type: 1, name: command.name, description: command.description, options };
