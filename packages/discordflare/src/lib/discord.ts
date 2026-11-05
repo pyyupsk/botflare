@@ -1,29 +1,22 @@
 import type {
   RESTPatchAPIWebhookWithTokenMessageJSONBody,
-  RESTPostAPIChannelMessageJSONBody,
   RESTPutAPIApplicationCommandsJSONBody,
 } from 'discord-api-types/v10';
 
+import { callDiscord } from '#lib/rest';
 import type { SyncEnv } from '#utils/env';
-
-const API = 'https://discord.com/api/v10';
 
 export async function putCommands(
   env: SyncEnv,
   body: RESTPutAPIApplicationCommandsJSONBody,
 ): Promise<[Error, null] | [null, number]> {
-  const scope = env.guildId ? `/guilds/${env.guildId}` : '';
-  const url = `${API}/applications/${env.applicationId}${scope}/commands`;
+  const route = env.guildId
+    ? '/applications/{application_id}/guilds/{guild_id}/commands'
+    : '/applications/{application_id}/commands';
+  const path = { application_id: env.applicationId, guild_id: env.guildId ?? '' };
 
-  const res = await fetch(url, {
-    method: 'PUT',
-    headers: { Authorization: `Bot ${env.token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) return [new Error(`Discord answered ${res.status}: ${await res.text()}`), null];
-
-  const saved = (await res.json()) as unknown[];
+  const [error, saved] = await callDiscord<unknown[]>(env.token, 'put', route, { path, body });
+  if (error) return [error, null];
 
   return [null, saved.length];
 }
@@ -33,15 +26,17 @@ export async function editOriginal(
   token: string,
   body: RESTPatchAPIWebhookWithTokenMessageJSONBody,
 ): Promise<Error | null> {
-  const res = await fetch(`${API}/webhooks/${applicationId}/${token}/messages/@original`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  const [error] = await callDiscord(
+    null,
+    'patch',
+    '/webhooks/{webhook_id}/{webhook_token}/messages/@original',
+    {
+      path: { webhook_id: applicationId, webhook_token: token },
+      body,
+    },
+  );
 
-  if (!res.ok) return new Error(`Discord answered ${res.status}: ${await res.text()}`);
-
-  return null;
+  return error;
 }
 
 export type Send = (channelId: string, content: string) => Promise<Error | null>;
@@ -51,17 +46,12 @@ export async function sendMessage(
   channelId: string,
   content: string,
 ): Promise<Error | null> {
-  const body: RESTPostAPIChannelMessageJSONBody = { content };
-
-  const res = await fetch(`${API}/channels/${channelId}/messages`, {
-    method: 'POST',
-    headers: { Authorization: `Bot ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+  const [error] = await callDiscord(token, 'post', '/channels/{channel_id}/messages', {
+    path: { channel_id: channelId },
+    body: { content },
   });
 
-  if (!res.ok) return new Error(`Discord answered ${res.status}: ${await res.text()}`);
-
-  return null;
+  return error;
 }
 
 export async function interactionCallback(
@@ -69,13 +59,15 @@ export async function interactionCallback(
   token: string,
   response: Response,
 ): Promise<Error | null> {
-  const res = await fetch(`${API}/interactions/${id}/${token}/callback`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: await response.text(),
-  });
+  const [error] = await callDiscord(
+    null,
+    'post',
+    '/interactions/{interaction_id}/{interaction_token}/callback',
+    {
+      path: { interaction_id: id, interaction_token: token },
+      body: await response.json(),
+    },
+  );
 
-  if (!res.ok) return new Error(`Discord answered ${res.status}: ${await res.text()}`);
-
-  return null;
+  return error;
 }

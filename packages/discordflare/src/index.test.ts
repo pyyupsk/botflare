@@ -6,7 +6,7 @@ import {
 import type { APIInteractionDataResolvedChannel, APIRole, APIUser } from 'discord-api-types/v10';
 import { afterEach, beforeAll, expect, expectTypeOf, it, vi } from 'vitest';
 
-import { bot, command, modal, option } from './index';
+import { bot, command, modal, option, rest } from './index';
 
 const encoder = new TextEncoder();
 const hex = (buffer: ArrayBuffer): string =>
@@ -550,4 +550,40 @@ it('replies and defers so only the user who ran the command sees it', async () =
 
   expect(await now.json()).toEqual({ type: 4, data: { content: 'psst', flags: 64 } });
   expect(await later.json()).toEqual({ type: 5, data: { flags: 64 } });
+});
+
+it('calls the REST API as the bot, typed from the route', async () => {
+  const fetch = vi.fn(async () => Response.json({ roles: [], joined_at: '2026-11-05' }));
+  vi.stubGlobal('fetch', fetch);
+
+  const [error, member] = await rest.get('/guilds/{guild_id}/members/{user_id}', {
+    path: { guild_id: '1', user_id: '2' },
+  });
+
+  expect(error).toBeNull();
+  expect(member?.roles).toEqual([]);
+  expect(fetch).toHaveBeenCalledWith(
+    'https://discord.com/api/v10/guilds/1/members/2',
+    expect.objectContaining({ headers: { Authorization: 'Bot secret' } }),
+  );
+});
+
+it('types the routes, methods and arguments of the REST API', () => {
+  expectTypeOf(
+    rest.put('/guilds/{guild_id}/members/{user_id}/roles/{role_id}', {
+      path: { guild_id: '1', user_id: '2', role_id: '3' },
+    }),
+  ).resolves.toEqualTypeOf<[Error, null] | [null, null]>();
+
+  // @ts-expect-error the route does not exist
+  void rest.get('/guilds/{guild_id}/nothing', { path: { guild_id: '1' } });
+  // @ts-expect-error the route has no POST
+  void rest.post('/guilds/{guild_id}/members/{user_id}', { path: { guild_id: '1', user_id: '2' } });
+  // @ts-expect-error user_id is missing
+  void rest.get('/guilds/{guild_id}/members/{user_id}', { path: { guild_id: '1' } });
+  void rest.post('/channels/{channel_id}/messages', {
+    path: { channel_id: '1' },
+    // @ts-expect-error content must be a string
+    body: { content: 1 },
+  });
 });

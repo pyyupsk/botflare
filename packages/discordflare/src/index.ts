@@ -1,3 +1,4 @@
+import { env as workerEnv } from 'cloudflare:workers';
 import type {
   APIChatInputApplicationCommandInteraction,
   APIInteraction,
@@ -13,6 +14,7 @@ import type {
 } from 'discord-api-types/v10';
 
 import { editOriginal, type Send, sendMessage } from '#lib/discord';
+import { callDiscord, type Rest } from '#lib/rest';
 import {
   type Command,
   type Context,
@@ -179,6 +181,40 @@ export type Bot = {
     ctx: Pick<ExecutionContext, 'waitUntil'>,
   ) => Promise<Response>;
 };
+
+const call =
+  (method: 'get' | 'post' | 'put' | 'patch' | 'delete') =>
+  async (route: string, init?: object): Promise<[Error, null] | [null, unknown]> => {
+    const token = (workerEnv as { DISCORD_TOKEN?: unknown }).DISCORD_TOKEN;
+    if (typeof token !== 'string') return [new Error('DISCORD_TOKEN is not set'), null];
+
+    return callDiscord(token, method, route, init);
+  };
+
+/**
+ * Calls the Discord REST API as the bot, with `DISCORD_TOKEN` from the Worker environment. Each
+ * method takes a route from the Discord API spec, such as `'/guilds/{guild_id}/roles'`, and
+ * types its `path`, `query`, `body` and result from that route. It returns `[error, data]` and
+ * does not throw. When Discord answers 429, it waits for `retry_after` and tries again, up to
+ * three tries in all.
+ *
+ * @example
+ * import { rest } from 'discordflare';
+ *
+ * const [error, member] = await rest.get('/guilds/{guild_id}/members/{user_id}', {
+ *   path: { guild_id: guildId, user_id: userId },
+ * });
+ * if (!error) await rest.put('/guilds/{guild_id}/members/{user_id}/roles/{role_id}', {
+ *   path: { guild_id: guildId, user_id: member.user.id, role_id: roleId },
+ * });
+ */
+export const rest: Rest = {
+  get: call('get'),
+  post: call('post'),
+  put: call('put'),
+  patch: call('patch'),
+  delete: call('delete'),
+} as Rest;
 
 async function startGateway(env: Record<string, unknown>, name: string): Promise<void> {
   const namespace = env[name] as DurableObjectNamespace;

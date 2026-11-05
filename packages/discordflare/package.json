@@ -20,6 +20,7 @@
   },
   "scripts": {
     "build": "tsdown",
+    "gen:routes": "bun scripts/routes.ts && oxfmt src/lib/routes.ts",
     "typecheck": "tsc --noEmit && tsc --noEmit -p cli"
   },
   "dependencies": {
