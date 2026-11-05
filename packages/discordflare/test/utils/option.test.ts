@@ -2,6 +2,7 @@ import { expect, expectTypeOf, it } from 'vitest';
 
 import { command, option } from '#index';
 import { payload } from '#utils/command';
+import { optionValues } from '#utils/option';
 
 it('sends choices, limits and channel types in the names Discord expects', () => {
   const pick = command(
@@ -76,4 +77,44 @@ it('tells Discord which options autocomplete', () => {
   expect(payload(find).options).toEqual([
     { name: 'q', description: 'Query', type: 3, required: false, autocomplete: true },
   ]);
+});
+
+it('resolves users with their member, mentionables and attachments', () => {
+  const values = optionValues(
+    [
+      { type: 6, name: 'who', value: '5' },
+      { type: 9, name: 'anyone', value: '5' },
+      { type: 9, name: 'group', value: '8' },
+      { type: 11, name: 'file', value: '3' },
+    ] as Parameters<typeof optionValues>[0],
+    {
+      users: { '5': { id: '5', username: 'yu' } },
+      members: { '5': { nick: 'Yu' } },
+      roles: { '8': { id: '8', name: 'mods' } },
+      attachments: { '3': { id: '3', filename: 'cat.png' } },
+    } as unknown as Parameters<typeof optionValues>[1],
+  );
+
+  expect(values).toEqual({
+    who: { id: '5', username: 'yu', member: { nick: 'Yu' } },
+    anyone: { id: '5', username: 'yu', member: { nick: 'Yu' } },
+    group: { id: '8', name: 'mods' },
+    file: { id: '3', filename: 'cat.png' },
+  });
+});
+
+it('sends mentionable and attachment options as types 9 and 11', () => {
+  const upload = command(
+    {
+      name: 'upload',
+      description: 'Upload',
+      options: {
+        file: option('attachment', { description: 'File', required: true }),
+        notify: option('mentionable', { description: 'Who to tell' }),
+      },
+    },
+    (c) => c.reply('ok'),
+  );
+
+  expect(payload(upload).options?.map((o) => o?.type)).toEqual([11, 9]);
 });

@@ -2,7 +2,9 @@ import type {
   APIApplicationCommandAutocompleteInteraction,
   APIApplicationCommandInteractionDataOption,
   APIChatInputApplicationCommandInteractionData,
+  APIAttachment,
   APIInteractionDataResolvedChannel,
+  APIInteractionDataResolvedGuildMember,
   APIRole,
   APIUser,
   ApplicationCommandOptionType,
@@ -16,9 +18,11 @@ export type OptionValue = {
   integer: number;
   number: number;
   boolean: boolean;
-  user: APIUser;
+  user: APIUser & { member?: APIInteractionDataResolvedGuildMember };
   channel: APIInteractionDataResolvedChannel;
   role: APIRole;
+  mentionable: (APIUser & { member?: APIInteractionDataResolvedGuildMember }) | APIRole;
+  attachment: APIAttachment;
 };
 
 export type ChannelType =
@@ -81,11 +85,15 @@ const OPTION_TYPE: Record<keyof OptionValue, ApplicationCommandOptionType> = {
   user: 6,
   channel: 7,
   role: 8,
+  mentionable: 9,
+  attachment: 11,
 };
 
 const USER: ApplicationCommandOptionType.User = 6;
 const CHANNEL: ApplicationCommandOptionType.Channel = 7;
 const ROLE: ApplicationCommandOptionType.Role = 8;
+const MENTIONABLE: ApplicationCommandOptionType.Mentionable = 9;
+const ATTACHMENT: ApplicationCommandOptionType.Attachment = 11;
 
 export type CommandOption = NonNullable<
   Schemas['ApplicationCommandUpdateRequest']['options']
@@ -117,6 +125,18 @@ export function optionsPayload(options: Options): CommandOption[] {
     .toSorted((a, b) => Number(b.required) - Number(a.required));
 }
 
+function userWithMember(
+  resolved: APIChatInputApplicationCommandInteractionData['resolved'],
+  id: string,
+): OptionValue['user'] | undefined {
+  const user = resolved?.users?.[id];
+  if (!user) return undefined;
+
+  const member = resolved?.members?.[id];
+
+  return member ? { ...user, member } : user;
+}
+
 export function optionValues(
   options: APIApplicationCommandInteractionDataOption[],
   resolved: APIChatInputApplicationCommandInteractionData['resolved'],
@@ -127,9 +147,12 @@ export function optionValues(
     if (!('value' in o)) continue;
 
     const id = String(o.value);
-    if (o.type === USER) values[o.name] = resolved?.users?.[id];
+    if (o.type === USER) values[o.name] = userWithMember(resolved, id);
     else if (o.type === CHANNEL) values[o.name] = resolved?.channels?.[id];
     else if (o.type === ROLE) values[o.name] = resolved?.roles?.[id];
+    else if (o.type === MENTIONABLE)
+      values[o.name] = userWithMember(resolved, id) ?? resolved?.roles?.[id];
+    else if (o.type === ATTACHMENT) values[o.name] = resolved?.attachments?.[id];
     else values[o.name] = o.value;
   }
 

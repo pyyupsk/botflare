@@ -1,4 +1,9 @@
-import type { APIInteractionDataResolvedChannel, APIRole, APIUser } from 'discord-api-types/v10';
+import type {
+  APIInteractionDataResolvedChannel,
+  APIInteractionDataResolvedGuildMember,
+  APIRole,
+  APIUser,
+} from 'discord-api-types/v10';
 import { expectTypeOf } from 'vitest';
 
 import { type Bot, bot, command, modal, option } from '#index';
@@ -104,7 +109,9 @@ const whois = command(
     },
   },
   (c) => {
-    expectTypeOf(c.options.user).toEqualTypeOf<APIUser>();
+    expectTypeOf(c.options.user).toEqualTypeOf<
+      APIUser & { member?: APIInteractionDataResolvedGuildMember }
+    >();
     expectTypeOf(c.options.where).toEqualTypeOf<APIInteractionDataResolvedChannel>();
     expectTypeOf(c.options.role).toEqualTypeOf<APIRole | undefined>();
 
