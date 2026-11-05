@@ -8,44 +8,36 @@ import type {
   InteractionType,
 } from 'discord-api-types/v10';
 
-import { editOriginal, type Send, sendMessage } from '#lib/discord';
+import { answerAutocomplete } from '#answers/autocomplete';
+import { answerButton } from '#answers/button';
+import { answerCommand } from '#answers/command';
+import { answerModal } from '#answers/modal';
+import { type Send, sendMessage } from '#lib/discord';
 import { createRest, type Rest } from '#lib/rest';
-import type { Schemas } from '#lib/routes';
-import { type Command, type Context, findCommand } from '#utils/command';
-import { message, type MessageOptions, type ReplyOptions } from '#utils/message';
-import { type Fields, type Modal, fieldValues, modalData } from '#utils/modal';
+import type { ButtonContext, ErrorHandler } from '#types';
+import type { Command, Context } from '#utils/command';
+import type { Fields, Modal } from '#utils/modal';
 import {
   type AutocompleteContext,
   type ChannelType,
   type Option,
   type Options,
   type OptionValue,
-  optionValues,
   type Suggestion,
 } from '#utils/option';
+import { PONG } from '#utils/response';
 import { verify } from '#utils/verify';
+
+export type { ErrorHandler } from '#types';
 
 const PING: InteractionType.Ping = 1;
 const APPLICATION_COMMAND: InteractionType.ApplicationCommand = 2;
 const MESSAGE_COMPONENT: InteractionType.MessageComponent = 3;
 const AUTOCOMPLETE: InteractionType.ApplicationCommandAutocomplete = 4;
 const MODAL_SUBMIT: InteractionType.ModalSubmit = 5;
-const MAX_CHOICES = 25;
 const CHAT_INPUT: ApplicationCommandType.ChatInput = 1;
 const BUTTON: ComponentType.Button = 2;
-const PONG: Schemas['PongInteractionCallbackRequest'] = { type: 1 };
-const DEFERRED: Schemas['CreateMessageInteractionCallbackRequest'] = { type: 5 };
-const DEFERRED_EPHEMERAL: Schemas['CreateMessageInteractionCallbackRequest'] = {
-  type: 5,
-  data: { flags: 64 },
-};
 const PUBLIC_KEY = /^[\da-f]{64}$/i;
-
-/**
- * Gets an error from work that runs after Discord has its answer: the work of `c.defer()`, a gateway
- * event handler, or a request to Discord that failed. `where` names the command, event or step.
- */
-export type ErrorHandler = (error: unknown, where: string) => void | Promise<void>;
 
 type OptionLimits<T extends keyof OptionValue> = T extends 'string'
   ? { minLength?: number; maxLength?: number }
@@ -170,38 +162,6 @@ export function modal<const F extends Fields>(
   return { id: config.id, title: config.title, fields: config.fields, run };
 }
 
-function showModal(form: Modal): Response {
-  const response: Schemas['ModalInteractionCallbackRequest'] = { type: 9, data: modalData(form) };
-
-  return Response.json(response);
-}
-
-function reply(content: string, options?: ReplyOptions): Response {
-  const response: Schemas['CreateMessageInteractionCallbackRequest'] = {
-    type: 4,
-    data: message(content, options),
-  };
-
-  return Response.json(response);
-}
-
-function update(content: string, options?: MessageOptions): Response {
-  const response: Schemas['UpdateMessageInteractionCallbackRequest'] = {
-    type: 7,
-    data: message(content, options),
-  };
-
-  return Response.json(response);
-}
-
-type ButtonContext = {
-  interaction: APIMessageComponentButtonInteraction;
-  value: string | undefined;
-  reply: typeof reply;
-  update: typeof update;
-  modal: typeof showModal;
-};
-
 type CronContext = { controller: ScheduledController; send: Send };
 
 type BotConfig = {
@@ -294,100 +254,22 @@ export function bot(config: BotConfig): Bot {
     ctx: Pick<ExecutionContext, 'waitUntil'>,
   ): Promise<Response> => {
     if (interaction.type === MESSAGE_COMPONENT && interaction.data.component_type === BUTTON) {
-      const id = interaction.data.custom_id;
-      const colon = id.indexOf(':');
-      const name = colon === -1 ? id : id.slice(0, colon);
-      const clicked = config.buttons?.[name];
-      if (!clicked) return new Response(null, { status: 404 });
-
-      return clicked({
-        interaction: interaction as APIMessageComponentButtonInteraction,
-        value: colon === -1 ? undefined : id.slice(colon + 1),
-        reply,
-        update,
-        modal: showModal,
-      });
+      return answerButton(interaction as APIMessageComponentButtonInteraction, config.buttons);
     }
-
-    if (interaction.type === MODAL_SUBMIT) {
-      const submitted = modals.get(interaction.data.custom_id);
-      if (!submitted) return new Response(null, { status: 404 });
-
-      return submitted.run({
-        interaction,
-        fields: fieldValues(interaction.data.components),
-        reply,
-      });
-    }
-
+    if (interaction.type === MODAL_SUBMIT) return answerModal(interaction, modals);
     if (interaction.type === AUTOCOMPLETE) {
-      const { found, given, path } = findCommand(commands, interaction.data);
-      const focused = given.find((o) => 'focused' in o && o.focused);
-      const suggest =
-        found && 'options' in found && focused
-          ? found.options[focused.name]?.autocomplete
-          : undefined;
-      if (!suggest || !focused || !('value' in focused)) return new Response(null, { status: 404 });
-
-      let suggestions: Suggestion<unknown>[] = [];
-      try {
-        suggestions = await suggest({ interaction, value: String(focused.value) });
-      } catch (error) {
-        await config.onError?.(error, `${path} autocomplete`);
-      }
-
-      const choices = suggestions
-        .slice(0, MAX_CHOICES)
-        .map((s) => (typeof s === 'object' && s !== null ? s : { name: String(s), value: s }));
-      const response = {
-        type: 8,
-        data: { choices },
-      } as Schemas['ApplicationCommandAutocompleteCallbackRequest'];
-
-      return Response.json(response);
+      return answerAutocomplete(interaction, commands, config.onError);
+    }
+    if (interaction.type === APPLICATION_COMMAND && interaction.data.type === CHAT_INPUT) {
+      return answerCommand(
+        interaction as APIChatInputApplicationCommandInteraction,
+        commands,
+        ctx,
+        config.onError,
+      );
     }
 
-    if (interaction.type !== APPLICATION_COMMAND || interaction.data.type !== CHAT_INPUT) {
-      return new Response(null, { status: 400 });
-    }
-
-    const { found, given, path: where } = findCommand(commands, interaction.data);
-    if (!found || !('run' in found)) return new Response(null, { status: 404 });
-
-    const values = optionValues(given, interaction.data.resolved);
-
-    const defer: Context<Options>['defer'] = (work, options) => {
-      const finish = async (): Promise<void> => {
-        let edit = message('Something went wrong.');
-        try {
-          const done = await work();
-          edit =
-            typeof done === 'string'
-              ? message(done)
-              : message(done.content, {
-                  buttons: done.buttons,
-                  embeds: done.embeds,
-                  allowedMentions: done.allowedMentions,
-                });
-        } catch (error) {
-          await config.onError?.(error, where);
-        }
-
-        const failed = await editOriginal(interaction.application_id, interaction.token, edit);
-        if (failed) await config.onError?.(failed, where);
-      };
-      ctx.waitUntil(finish());
-
-      return Response.json(options?.ephemeral ? DEFERRED_EPHEMERAL : DEFERRED);
-    };
-
-    return found.run({
-      interaction: interaction as APIChatInputApplicationCommandInteraction,
-      options: values,
-      reply,
-      defer,
-      modal: showModal,
-    });
+    return new Response(null, { status: 400 });
   };
 
   return {

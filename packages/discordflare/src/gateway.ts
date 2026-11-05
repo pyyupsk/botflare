@@ -6,8 +6,9 @@ import type {
   GatewayReceivePayload,
 } from 'discord-api-types/v10';
 
-import type { Bot, ErrorHandler } from '#index';
+import type { Bot } from '#index';
 import { interactionCallback, type Send, sendMessage } from '#lib/discord';
+import type { ErrorHandler } from '#types';
 import { type Intent, intentBits } from '#utils/intents';
 import { afterClose, type Session, Shard } from '#utils/shard';
 
