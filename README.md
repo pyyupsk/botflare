@@ -4,7 +4,7 @@
 
 Build Discord bots that run on Cloudflare Workers, with types from the official Discord API spec.
 
-[👉 Example bot](./examples/basic) · [👉 Discord API spec](https://github.com/discord/discord-api-spec)
+[👉 Example bot](https://github.com/pyyupsk/discordflare/tree/main/examples/basic) · [👉 Discord API spec](https://github.com/discord/discord-api-spec)
 
 discordflare is an unofficial library. It is not affiliated with, endorsed by, or sponsored by Discord Inc. or Cloudflare, Inc.
 
@@ -136,4 +136,4 @@ discord.js and discord.py expect a process that stays on, with a WebSocket and a
 
 ## License
 
-[MIT](./LICENSE) License © 2026 [Pongsakorn Thipayanate](https://github.com/pyyupsk)
+[MIT](https://github.com/pyyupsk/discordflare/blob/main/LICENSE) License © 2026 [Pongsakorn Thipayanate](https://github.com/pyyupsk)

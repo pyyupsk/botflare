@@ -1,7 +1,14 @@
 {
   "name": "discordflare",
   "version": "0.0.0",
+  "homepage": "https://github.com/pyyupsk/discordflare#readme",
+  "bugs": "https://github.com/pyyupsk/discordflare/issues",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pyyupsk/discordflare.git",
+    "directory": "packages/discordflare"
+  },
   "bin": {
     "discordflare": "./dist/cli.mjs"
   },
@@ -22,6 +29,7 @@
   "scripts": {
     "build": "tsdown",
     "gen:routes": "bun scripts/routes.ts && oxfmt src/lib/routes.ts",
+    "prepack": "bun run build",
     "typecheck": "tsc --noEmit && tsc --noEmit -p cli"
   },
   "dependencies": {

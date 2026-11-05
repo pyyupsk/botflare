@@ -9,4 +9,5 @@ export default defineConfig({
   sourcemap: true,
   publint: { level: 'suggestion' },
   attw: { profile: 'esm-only', level: 'error' },
+  copy: [{ from: ['../../README.md', '../../LICENSE'], to: '.' }],
 });
