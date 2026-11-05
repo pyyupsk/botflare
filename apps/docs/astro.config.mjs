@@ -14,6 +14,7 @@ export default defineConfig({
         themes: ['gruvbox-dark-medium', 'gruvbox-light-medium'],
         styleOverrides: {
           borderColor: 'var(--sl-color-gray-5)',
+          borderRadius: '0',
           codeBackground: 'var(--sl-color-gray-6)',
           frames: {
             editorTabBarBackground: 'var(--sl-color-black)',
@@ -26,8 +27,12 @@ export default defineConfig({
         },
       },
       customCss: [
-        '@fontsource-variable/geist',
-        '@fontsource-variable/geist-mono',
+        '@fontsource-variable/archivo/wdth.css',
+        '@fontsource/ibm-plex-sans/400.css',
+        '@fontsource/ibm-plex-sans/500.css',
+        '@fontsource/ibm-plex-sans/600.css',
+        '@fontsource/ibm-plex-mono/400.css',
+        '@fontsource/ibm-plex-mono/500.css',
         './src/styles/global.css',
       ],
     }),

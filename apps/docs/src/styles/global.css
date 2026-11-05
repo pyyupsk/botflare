@@ -6,8 +6,9 @@
 
 /* Ember: warm charcoal with coral. Every color on the site comes from these tokens. */
 @theme {
-  --font-sans: 'Geist Variable', system-ui, sans-serif;
-  --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --font-display: 'Archivo Variable', 'IBM Plex Sans', sans-serif;
 
   --color-accent-50: #fff4f1;
   --color-accent-100: #fbdcd3;
@@ -73,7 +74,33 @@
   color: var(--sl-color-black);
 }
 
+/* Ruled and square: hairline borders, no rounded corners, no tinted cards. */
 :root .card-grid > .card {
-  --sl-card-border: var(--sl-color-accent);
-  --sl-card-bg: var(--sl-color-accent-low);
+  --sl-card-border: var(--sl-color-gray-5);
+  --sl-card-bg: transparent;
+}
+
+.sl-link-button,
+.card,
+.card .icon,
+site-search button,
+starlight-theme-select select,
+.sidebar-content a,
+.sl-markdown-content code,
+.starlight-aside,
+.sl-steps > li::before {
+  border-radius: 0;
+}
+
+.site-title {
+  color: var(--sl-color-white);
+}
+
+.site-title,
+h1#_top,
+.sl-markdown-content :is(h1, h2, h3, h4),
+.hero h1 {
+  font-family: var(--font-display);
+  font-stretch: 85%;
+  letter-spacing: -0.01em;
 }
