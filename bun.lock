@@ -22,6 +22,16 @@
         "typescript": "^7",
       },
     },
+    "examples/basic": {
+      "name": "discordflare-example-basic",
+      "dependencies": {
+        "discordflare": "workspace:*",
+      },
+      "devDependencies": {
+        "@cloudflare/workers-types": "^5.20261104.1",
+        "wrangler": "^4.157.0",
+      },
+    },
     "packages/discordflare": {
       "name": "discordflare",
       "version": "0.0.0",
@@ -577,6 +587,8 @@
     "discord-api-types": ["discord-api-types@0.38.57", "", {}, "sha512-R1CTSSt4RshqCq23j2Xq2ZscvzB4LzG9OB1CYQdKUGdw8Ti/oF/72EEtK2mNpagG/Vj9NcBT7dw9lKLf+Dacfg=="],
 
     "discordflare": ["discordflare@workspace:packages/discordflare"],
+
+    "discordflare-example-basic": ["discordflare-example-basic@workspace:examples/basic"],
 
     "dts-resolver": ["dts-resolver@3.0.0", "", { "peerDependencies": { "oxc-resolver": ">=11.0.0" }, "optionalPeers": ["oxc-resolver"] }, "sha512-1T1f+z+4tl9XD+m+0HBgWoL/nm0bOIffyWaUuUSBlFg/86IWvfx+wjNaO/ybU0AJzG9/Mi5hBUgGV6zCmWEN7Q=="],
 

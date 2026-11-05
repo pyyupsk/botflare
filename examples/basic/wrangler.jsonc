@@ -1,0 +1,8 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "discordflare-example-basic",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-01",
+  "durable_objects": { "bindings": [{ "name": "GATEWAY", "class_name": "Gateway" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Gateway"] }],
+}
