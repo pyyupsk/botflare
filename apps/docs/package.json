@@ -3,15 +3,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "astro": "astro",
     "build": "astro build",
     "dev": "astro dev",
-    "preview": "astro preview",
-    "start": "astro dev"
+    "preview": "astro preview"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.42.9",
-    "astro": "^7.3.6",
-    "sharp": "^0.35.3"
+    "astro": "^7.3.6"
   }
 }
