@@ -22,7 +22,7 @@
     "directory": "packages/botflare"
   },
   "bin": {
-    "botflare": "./dist/cli.mjs"
+    "botflare": "dist/cli.mjs"
   },
   "files": [
     "dist"

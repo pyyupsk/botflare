@@ -13,6 +13,7 @@
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "prepare": "nit install",
+    "release": "bumpp packages/botflare/package.json --commit 'chore: release v%s' --tag 'v%s' --execute 'bun install' --all --print-commits",
     "test": "vitest run",
     "typecheck": "bun check && bun run --filter './packages/*' --filter './examples/*' typecheck"
   },
@@ -23,6 +24,7 @@
     "@commitlint/types": "^21.2.3",
     "@pyyupsk/nit": "^0.3.0",
     "@types/bun": "latest",
+    "bumpp": "^12.3.0",
     "eslint-plugin-jsdoc": "^65.4.3",
     "fallow": "^3.39.0",
     "oxfmt": "^0.76.0",
