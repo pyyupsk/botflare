@@ -116,7 +116,7 @@
       }
     },
     {
-      "files": ["**/*.config.{ts,js}", "tools/**", "examples/*/src/index.ts", "**/*.d.ts"],
+      "files": ["**/*.config.{ts,js,mjs}", "tools/**", "examples/*/src/index.ts", "**/*.d.ts"],
       "rules": {
         "import/no-default-export": "off"
       }

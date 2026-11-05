@@ -2,6 +2,7 @@
   "name": "botflare-monorepo",
   "private": true,
   "workspaces": [
+    "apps/*",
     "packages/*",
     "examples/*"
   ],
