@@ -17,6 +17,7 @@ import {
   type Option,
   type OptionValue,
   type Options,
+  type ChannelType,
   optionValues,
 } from '#utils/command';
 import { message, type MessageOptions, type ReplyOptions } from '#utils/message';
@@ -43,9 +44,28 @@ const PUBLIC_KEY = /^[\da-f]{64}$/i;
  */
 export type ErrorHandler = (error: unknown, where: string) => void | Promise<void>;
 
+type OptionLimits<T extends keyof OptionValue> = T extends 'string'
+  ? { minLength?: number; maxLength?: number }
+  : T extends 'integer' | 'number'
+    ? { min?: number; max?: number }
+    : T extends 'channel'
+      ? { channelTypes?: ChannelType[] }
+      : unknown;
+
+type Choice<T extends keyof OptionValue> = T extends 'string'
+  ? string
+  : T extends 'integer' | 'number'
+    ? number
+    : never;
+
 /**
  * Declares one option of a slash command. The handler reads its value from `c.options`,
  * typed from `type`, and `undefined` when the option is not `required`.
+ *
+ * A `string`, `integer` or `number` option also takes `choices`, keyed by the label Discord shows.
+ * The user can pick only those, and the handler gets one of their values. A `string` option takes
+ * `minLength` and `maxLength`, an `integer` or `number` option takes `min` and `max`, and a
+ * `channel` option takes `channelTypes`, such as `['text', 'forum']`.
  *
  * @param type The value type Discord asks the user for. `user`, `channel` and `role` give the full
  *   object Discord sends with the command, not only its id.
@@ -54,13 +74,20 @@ export type ErrorHandler = (error: unknown, where: string) => void | Promise<voi
  * @param config.required Whether the user must fill it in. Defaults to `false`.
  * @returns The option, for the `options` of {@link command}.
  * @example
- * option('integer', { description: 'How many dice', required: true });
+ * option('integer', { description: 'How many dice', required: true, min: 1, max: 6 });
+ * option('string', { description: 'Color', choices: { Red: 'red', Blue: 'blue' } });
  */
-export function option<const T extends keyof OptionValue, const R extends boolean = false>(
+export function option<
+  const T extends keyof OptionValue,
+  const R extends boolean = false,
+  const C extends Record<string, Choice<T>> = never,
+>(
   type: T,
-  config: { description: string; required?: R },
-): Option<T, R> {
-  return { type, description: config.description, required: (config.required ?? false) as R };
+  config: { description: string; required?: R; choices?: C } & OptionLimits<T>,
+): Option<T, R, [C] extends [never] ? OptionValue[T] : C[keyof C]> {
+  const built: Option = { ...config, type, required: config.required ?? false };
+
+  return built as Option<T, R, [C] extends [never] ? OptionValue[T] : C[keyof C]>;
 }
 
 /**

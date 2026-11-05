@@ -21,20 +21,57 @@ export type OptionValue = {
   role: APIRole;
 };
 
-export type Option<T extends keyof OptionValue = keyof OptionValue, R extends boolean = boolean> = {
+export type ChannelType =
+  | 'text'
+  | 'voice'
+  | 'category'
+  | 'announcement'
+  | 'announcement_thread'
+  | 'public_thread'
+  | 'private_thread'
+  | 'stage'
+  | 'directory'
+  | 'forum';
+
+const CHANNEL_TYPES: Record<ChannelType, Schemas['ChannelTypes']> = {
+  text: 0,
+  voice: 2,
+  category: 4,
+  announcement: 5,
+  announcement_thread: 10,
+  public_thread: 11,
+  private_thread: 12,
+  stage: 13,
+  directory: 14,
+  forum: 15,
+};
+
+export type Option<
+  T extends keyof OptionValue = keyof OptionValue,
+  R extends boolean = boolean,
+  V = OptionValue[T],
+> = {
   type: T;
   description: string;
   required: R;
+  choices?: Record<string, V>;
+  min?: number;
+  max?: number;
+  minLength?: number;
+  maxLength?: number;
+  channelTypes?: ChannelType[];
 };
 
-export type Options = Record<string, Option>;
+export type Options = Record<string, Option<keyof OptionValue, boolean, unknown>>;
 
 export type Context<O extends Options> = {
   interaction: APIChatInputApplicationCommandInteraction;
   options: {
-    [K in keyof O]: O[K] extends Option<infer T, true>
-      ? OptionValue[T]
-      : OptionValue[O[K]['type']] | undefined;
+    [K in keyof O]: O[K] extends Option<keyof OptionValue, infer R, infer V>
+      ? R extends true
+        ? V
+        : V | undefined
+      : never;
   };
   reply: (content: string, options?: ReplyOptions) => Response;
   defer: (
@@ -65,14 +102,29 @@ const USER: ApplicationCommandOptionType.User = 6;
 const CHANNEL: ApplicationCommandOptionType.Channel = 7;
 const ROLE: ApplicationCommandOptionType.Role = 8;
 
+type CommandOption = NonNullable<Schemas['ApplicationCommandUpdateRequest']['options']>[number];
+
 export function payload(command: Command): Schemas['ApplicationCommandUpdateRequest'] {
   const options = Object.entries(command.options)
-    .map(([name, o]) => ({
-      name,
-      description: o.description,
-      type: OPTION_TYPE[o.type],
-      required: o.required,
-    }))
+    .map(([name, o]) => {
+      const built: Record<string, unknown> = {
+        name,
+        description: o.description,
+        type: OPTION_TYPE[o.type],
+        required: o.required,
+      };
+
+      if (o.choices) {
+        built.choices = Object.entries(o.choices).map(([label, value]) => ({ name: label, value }));
+      }
+      if (o.min !== undefined) built.min_value = o.min;
+      if (o.max !== undefined) built.max_value = o.max;
+      if (o.minLength !== undefined) built.min_length = o.minLength;
+      if (o.maxLength !== undefined) built.max_length = o.maxLength;
+      if (o.channelTypes) built.channel_types = o.channelTypes.map((t) => CHANNEL_TYPES[t]);
+
+      return built as CommandOption;
+    })
     .toSorted((a, b) => Number(b.required) - Number(a.required));
 
   return { type: 1, name: command.name, description: command.description, options };
