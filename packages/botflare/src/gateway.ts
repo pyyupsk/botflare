@@ -17,6 +17,17 @@ const GATEWAY = 'wss://gateway.discord.gg';
 const WATCH_MS = 60_000;
 const INTERACTION_CREATE = 'INTERACTION_CREATE' as GatewayDispatchEvents.InteractionCreate;
 
+/** What a gateway event handler gets besides the event data. */
+export type EventContext = {
+  /** Posts a message to a channel, with optional `buttons` and `embeds`. */
+  send: Send;
+  /**
+   * The storage of the Durable Object that holds the connection, such as `storage.kv.get(key)`.
+   * The connection keeps its own state under the `session` key, so leave that key alone.
+   */
+  storage: DurableObjectStorage;
+};
+
 type GatewayConfig = {
   /**
    * The names of the gateway intents the bot needs, such as `'GuildMessages'`. Turn on privileged
@@ -34,10 +45,10 @@ type GatewayConfig = {
   onError?: ErrorHandler;
   /**
    * A handler per dispatch event name, such as `MESSAGE_CREATE`. `c.send` posts a message to a
-   * channel, with optional `buttons` and `embeds`.
+   * channel, with optional `buttons` and `embeds`. `c.storage` keeps state between events.
    */
   events: {
-    [P in GatewayDispatchPayload as P['t']]?: (data: P['d'], c: { send: Send }) => unknown;
+    [P in GatewayDispatchPayload as P['t']]?: (data: P['d'], c: EventContext) => unknown;
   };
 };
 
@@ -131,13 +142,13 @@ export function gateway(
           }
 
           const handler = config.events[event.t] as
-            | ((data: unknown, c: { send: typeof send }) => unknown)
+            | ((data: unknown, c: EventContext) => unknown)
             | undefined;
           if (!handler) return;
 
           const run = async (): Promise<void> => {
             try {
-              await handler(event.d, { send });
+              await handler(event.d, { send, storage: this.ctx.storage });
             } catch (error) {
               await config.onError?.(error, event.t);
             }

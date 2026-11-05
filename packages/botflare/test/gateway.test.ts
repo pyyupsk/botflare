@@ -7,8 +7,9 @@ it('types each event handler from the event name', () => {
   gateway({
     intents: ['GuildMessages'],
     events: {
-      MESSAGE_CREATE: (message) => {
+      MESSAGE_CREATE: (message, c) => {
         expectTypeOf(message).toEqualTypeOf<GatewayMessageCreateDispatchData>();
+        expectTypeOf(c.storage).toEqualTypeOf<DurableObjectStorage>();
       },
       // @ts-expect-error
       NOT_AN_EVENT: () => {},

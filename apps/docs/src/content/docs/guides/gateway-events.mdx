@@ -30,6 +30,7 @@ export default app;
 
 - The keys of `events` are gateway event names, such as `MESSAGE_CREATE` and `GUILD_MEMBER_ADD`. Each handler gets the event data with its type from discord-api-types.
 - `c.send(channelId, text, options)` posts a message. It takes the same [message options](/guides/answers/#message-options) as `reply`, and returns an `Error` if Discord refuses.
+- `c.storage` is the storage of the Durable Object, for state that lasts between events, such as `c.storage.kv.put('joined', count)`. The connection keeps its session under the `session` key, so use other keys.
 - The Worker setup, the binding and the first start are in [Getting started](/guides/getting-started/) and [Deploy](/guides/deploy/).
 
 ## Intents
