@@ -14,6 +14,7 @@ export type Modal<F extends Fields = Fields> = {
   fields: F;
   run(c: {
     interaction: APIModalSubmitInteraction;
+    value: string | undefined;
     fields: {
       [K in keyof F]: F[K] extends { label: string; required?: true } ? string : string | undefined;
     };
@@ -21,9 +22,12 @@ export type Modal<F extends Fields = Fields> = {
   }): Response | Promise<Response>;
 };
 
-export function modalData(modal: Modal): Schemas['ModalInteractionCallbackRequestData'] {
+export function modalData(
+  modal: Modal,
+  value?: string,
+): Schemas['ModalInteractionCallbackRequestData'] {
   return {
-    custom_id: modal.id,
+    custom_id: value === undefined ? modal.id : `${modal.id}:${value}`,
     title: modal.title,
     components: Object.entries(modal.fields).map(([name, field]) => ({
       type: 18,

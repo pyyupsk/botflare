@@ -29,8 +29,11 @@ export function updateResponse(content: string, options?: MessageOptions): Respo
   return Response.json(response);
 }
 
-export function modalResponse(form: Modal): Response {
-  const response: Schemas['ModalInteractionCallbackRequest'] = { type: 9, data: modalData(form) };
+export function modalResponse(form: Modal, value?: string): Response {
+  const response: Schemas['ModalInteractionCallbackRequest'] = {
+    type: 9,
+    data: modalData(form, value),
+  };
 
   return Response.json(response);
 }

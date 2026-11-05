@@ -1,6 +1,7 @@
 import { createExecutionContext } from 'cloudflare:test';
 import { afterEach, expect, it, vi } from 'vitest';
 
+import { bot, command, modal } from '#index';
 import { app, click, env, signed, slash, submit } from '#test/fixtures';
 
 let ctx = createExecutionContext();
@@ -32,4 +33,21 @@ it('answers 404 for a modal the bot does not know', async () => {
   const res = await app.fetch(await signed(submit('nope', 'x')), env, ctx);
 
   expect(res.status).toBe(404);
+});
+
+it('carries a value from opening the form to the handler', async () => {
+  const rename = modal(
+    { id: 'rename', title: 'Rename', fields: { text: { label: 'New name' } } },
+    (c) => c.reply(`renamed ${c.value} to ${c.fields.text}`),
+  );
+  const forms = bot({
+    commands: [command({ name: 'edit', description: 'Edit' }, (c) => c.modal(rename, 'item-7'))],
+    modals: [rename],
+  });
+
+  const opened = await forms.fetch(await signed(slash('edit', [])), env, ctx);
+  const submitted = await forms.fetch(await signed(submit('rename:item-7', 'Lamp')), env, ctx);
+
+  expect(await opened.json()).toMatchObject({ type: 9, data: { custom_id: 'rename:item-7' } });
+  expect(await submitted.json()).toMatchObject({ data: { content: 'renamed item-7 to Lamp' } });
 });

@@ -33,7 +33,7 @@ export type Context<O extends Options> = {
     work: () => Promise<string | ({ content: string } & MessageOptions)>,
     options?: { ephemeral?: boolean },
   ) => Response;
-  modal: (modal: Modal) => Response;
+  modal: (modal: Modal, value?: string) => Response;
 };
 
 export type Command<O extends Options = Options> =

@@ -10,6 +10,8 @@ import type { Fields, Modal } from '#utils/modal';
  * @param config.fields The text fields, keyed by name. A field is required unless `required` is `false`.
  * @param run Answers the submitted form. `c.fields` holds the text of each field, keyed by name.
  *   A field that is not required and left empty is `undefined`.
+ *   To carry a value through the form, open it with `c.modal(form, value)`. The handler gets that
+ *   value as `c.value`, such as the id of the item the form edits.
  * @returns The modal, for `c.modal()` and the `modals` of {@link bot}.
  * @example
  * const feedback = modal(
