@@ -2,16 +2,28 @@
 import starlight from '@astrojs/starlight';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
+import starlightTypeDoc, { typeDocSidebarGroup } from 'starlight-typedoc';
 
 export default defineConfig({
   integrations: [
     starlight({
       title: 'botflare',
+      plugins: [
+        starlightTypeDoc({
+          entryPoints: [
+            '../../packages/botflare/src/index.ts',
+            '../../packages/botflare/src/gateway.ts',
+          ],
+          tsconfig: '../../packages/botflare/tsconfig.json',
+          sidebar: { label: 'API reference', collapsed: true },
+        }),
+      ],
       logo: { src: './src/assets/logo.svg' },
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/pyyupsk/botflare' }],
       components: { Header: './src/components/layout/site-header.astro' },
       sidebar: [
         { label: 'Guides', items: [{ autogenerate: { directory: 'guides' } }] },
+        typeDocSidebarGroup,
         { label: 'Examples', link: 'https://github.com/pyyupsk/botflare/tree/main/examples' },
       ],
       expressiveCode: {

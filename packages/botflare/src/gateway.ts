@@ -1,3 +1,4 @@
+/** @module botflare/gateway */
 import { DurableObject } from 'cloudflare:workers';
 import type {
   GatewayDispatchEvents,

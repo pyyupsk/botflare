@@ -1,3 +1,4 @@
+/** @module botflare */
 export { type Bot, bot } from '#bot';
 export { command } from '#command';
 export { contextMenu } from '#context-menu';

@@ -100,6 +100,12 @@ starlight-tabs .tab > [role='tab'] {
   padding-inline: 0.625rem;
 }
 
+/* API signatures put each type in its own code span; read them as one line. */
+.sl-markdown-content blockquote code {
+  background-color: transparent;
+  padding: 0;
+}
+
 .sl-menu-button {
   border: 1px solid var(--sl-color-gray-5);
   background-color: transparent;
