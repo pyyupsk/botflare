@@ -26,6 +26,7 @@ export function answerCommand(
             ? message(done)
             : message(done.content, {
                 buttons: done.buttons,
+                selects: done.selects,
                 embeds: done.embeds,
                 allowedMentions: done.allowedMentions,
               });

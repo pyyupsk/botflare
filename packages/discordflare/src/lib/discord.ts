@@ -60,6 +60,7 @@ export async function sendMessage(
     path: { channel_id: channelId },
     body: message(content, {
       buttons: options.buttons,
+      selects: options.selects,
       embeds: options.embeds,
       allowedMentions: options.allowedMentions,
     }),

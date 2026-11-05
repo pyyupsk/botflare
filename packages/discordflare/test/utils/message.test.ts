@@ -46,3 +46,12 @@ it('pings nobody unless the message allows it', () => {
   expect(everyone.allowed_mentions).toEqual({ parse: [] });
   expect(one.allowed_mentions).toEqual({ users: ['5'] });
 });
+
+it('puts select menus above the buttons', () => {
+  const data = message('pick', {
+    selects: [{ type: 'role', id: 'role' }],
+    buttons: [{ id: 'done', label: 'Done' }],
+  });
+
+  expect(data.components?.map((row) => row.type === 1 && row.components[0]?.type)).toEqual([6, 2]);
+});

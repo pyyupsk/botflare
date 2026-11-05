@@ -32,7 +32,7 @@ export type ChannelType =
   | 'directory'
   | 'forum';
 
-const CHANNEL_TYPES: Record<ChannelType, Schemas['ChannelTypes']> = {
+export const CHANNEL_TYPES: Record<ChannelType, Schemas['ChannelTypes']> = {
   text: 0,
   voice: 2,
   category: 4,

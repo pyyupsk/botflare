@@ -2,6 +2,7 @@ import type {
   APIChatInputApplicationCommandInteraction,
   APIInteraction,
   APIMessageComponentButtonInteraction,
+  APIMessageComponentSelectMenuInteraction,
   ApplicationCommandType,
   ComponentType,
   InteractionType,
@@ -11,11 +12,13 @@ import { answerAutocomplete } from '#answers/autocomplete';
 import { answerButton } from '#answers/button';
 import { answerCommand } from '#answers/command';
 import { answerModal } from '#answers/modal';
+import { answerSelect } from '#answers/select';
 import { type Send, sendMessage } from '#lib/discord';
-import type { ButtonContext, ErrorHandler } from '#types';
+import type { ButtonContext, ErrorHandler, Select } from '#types';
 import type { Command } from '#utils/command';
 import type { Modal } from '#utils/modal';
 import { PONG } from '#utils/response';
+import type { SelectType } from '#utils/select';
 import { verify } from '#utils/verify';
 
 const PING: InteractionType.Ping = 1;
@@ -32,6 +35,7 @@ type CronContext = { controller: ScheduledController; send: Send };
 type BotConfig = {
   commands: Command[];
   buttons?: Record<string, (c: ButtonContext) => Response | Promise<Response>>;
+  selects?: Select<SelectType, unknown>[];
   modals?: Modal[];
   gateway?: string;
   onError?: ErrorHandler;
@@ -82,6 +86,7 @@ async function startGateway(env: Record<string, unknown>, name: string): Promise
  * @param config.buttons Answers a click, keyed by the button id given to `reply`. An id such as
  *   `page:2` runs the `page` handler with `c.value` set to `'2'`. `update` edits the message that
  *   holds the button. Pass `{ buttons: [] }` to remove them.
+ * @param config.selects The select menus the bot answers, made with `select()`.
  * @returns The Worker handler. Export it as the default export of your Worker. Pass it to
  *   `gateway({ bot })` to answer interactions that arrive over the gateway too.
  * @example
@@ -92,11 +97,15 @@ async function startGateway(env: Record<string, unknown>, name: string): Promise
 export function bot(config: BotConfig): Bot {
   const commands = new Map(config.commands.map((c) => [c.name, c]));
   const modals = new Map((config.modals ?? []).map((m) => [m.id, m]));
+  const selects = new Map((config.selects ?? []).map((s) => [s.id, s]));
 
   const answer = async (
     interaction: APIInteraction,
     ctx: Pick<ExecutionContext, 'waitUntil'>,
   ): Promise<Response> => {
+    if (interaction.type === MESSAGE_COMPONENT && interaction.data.component_type !== BUTTON) {
+      return answerSelect(interaction as APIMessageComponentSelectMenuInteraction, selects);
+    }
     if (interaction.type === MESSAGE_COMPONENT && interaction.data.component_type === BUTTON) {
       return answerButton(interaction as APIMessageComponentButtonInteraction, config.buttons);
     }
