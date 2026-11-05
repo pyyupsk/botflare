@@ -1,7 +1,7 @@
 import type { APIModalSubmissionComponent, APIModalSubmitInteraction } from 'discord-api-types/v10';
 
 import type { Schemas } from '#lib/routes';
-import type { ReplyOptions } from '#utils/message';
+import type { FollowUps, ReplyOptions } from '#utils/message';
 
 export type Fields = Record<
   string,
@@ -12,14 +12,18 @@ export type Modal<F extends Fields = Fields> = {
   id: string;
   title: string;
   fields: F;
-  run(c: {
-    interaction: APIModalSubmitInteraction;
-    value: string | undefined;
-    fields: {
-      [K in keyof F]: F[K] extends { label: string; required?: true } ? string : string | undefined;
-    };
-    reply: (content: string, options?: ReplyOptions) => Response;
-  }): Response | Promise<Response>;
+  run(
+    c: {
+      interaction: APIModalSubmitInteraction;
+      value: string | undefined;
+      fields: {
+        [K in keyof F]: F[K] extends { label: string; required?: true }
+          ? string
+          : string | undefined;
+      };
+      reply: (content: string, options?: ReplyOptions) => Response;
+    } & FollowUps,
+  ): Response | Promise<Response>;
 };
 
 export function modalData(

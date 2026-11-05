@@ -15,6 +15,13 @@ export type MessageOptions = {
 
 export type ReplyOptions = MessageOptions & { ephemeral?: boolean };
 
+export type FollowUps = {
+  after(work: () => Promise<void>): void;
+  followUp(content: string, options?: ReplyOptions): Promise<Error | null>;
+  editReply(content: string, options?: MessageOptions): Promise<Error | null>;
+  deleteReply(): Promise<Error | null>;
+};
+
 const PER_ROW = 5;
 const EPHEMERAL: MessageFlags.Ephemeral = 64;
 const NO_PINGS: Schemas['MessageAllowedMentionsRequest'] = { parse: [] };

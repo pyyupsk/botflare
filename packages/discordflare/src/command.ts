@@ -25,6 +25,11 @@ import type { Options } from '#utils/option';
  *   to add buttons and `embeds` to add embeds. Messages ping nobody, even for `@everyone` or `<@id>`
  *   in the text. To ping, pass `allowedMentions`, such as `{ users: [id] }` or `{ parse: ['roles'] }`. The work of `defer` returns the text, or
  *   `{ content, buttons, embeds }`.
+ *
+ *   To send more after the first answer, call `c.after(work)` before you return it. `work` runs once
+ *   Discord has the answer, and can call `c.followUp(text, options)` for a new message,
+ *   `c.editReply(text, options)` and `c.deleteReply()`. Each returns an `Error` if Discord refuses.
+ *   The work of `defer` can call them too. Buttons, select menus, modals and context menus have them.
  * @returns The command, for the `commands` of {@link bot}.
  * @example
  * const greet = command(

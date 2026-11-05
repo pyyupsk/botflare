@@ -1,6 +1,7 @@
 import type { APIMessageComponentButtonInteraction } from 'discord-api-types/v10';
 
 import { deferUpdate } from '#answers/defer';
+import { type AnswerContext, followUps } from '#answers/follow';
 import type { ButtonContext, ErrorHandler } from '#types';
 import { splitId } from '#utils/id';
 import { modalResponse, replyResponse, updateResponse } from '#utils/response';
@@ -8,7 +9,7 @@ import { modalResponse, replyResponse, updateResponse } from '#utils/response';
 export function answerButton(
   interaction: APIMessageComponentButtonInteraction,
   buttons: Record<string, (c: ButtonContext) => Response | Promise<Response>> | undefined,
-  ctx: Pick<ExecutionContext, 'waitUntil'>,
+  ctx: AnswerContext,
   onError?: ErrorHandler,
 ): Response | Promise<Response> {
   const { name, value } = splitId(interaction.data.custom_id);
@@ -21,6 +22,7 @@ export function answerButton(
     reply: replyResponse,
     update: updateResponse,
     modal: modalResponse,
+    ...followUps(interaction, ctx, `button ${name}`, onError),
     deferUpdate: deferUpdate(interaction, ctx, `button ${name}`, onError),
   });
 }

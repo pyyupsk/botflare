@@ -1,6 +1,7 @@
 import type { APIChatInputApplicationCommandInteraction } from 'discord-api-types/v10';
 
 import { deferAnswer } from '#answers/defer';
+import { type AnswerContext, followUps } from '#answers/follow';
 import type { ErrorHandler } from '#types';
 import { type Command, findCommand } from '#utils/command';
 import { optionValues } from '#utils/option';
@@ -9,7 +10,7 @@ import { modalResponse, replyResponse } from '#utils/response';
 export function answerCommand(
   interaction: APIChatInputApplicationCommandInteraction,
   commands: Map<string, Command>,
-  ctx: Pick<ExecutionContext, 'waitUntil'>,
+  ctx: AnswerContext,
   onError?: ErrorHandler,
 ): Response | Promise<Response> {
   const { found, given, path } = findCommand(commands, interaction.data);
@@ -21,5 +22,6 @@ export function answerCommand(
     reply: replyResponse,
     defer: deferAnswer(interaction, ctx, path, onError),
     modal: modalResponse,
+    ...followUps(interaction, ctx, path, onError),
   });
 }

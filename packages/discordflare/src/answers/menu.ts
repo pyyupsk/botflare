@@ -6,6 +6,7 @@ import type {
 } from 'discord-api-types/v10';
 
 import { deferAnswer } from '#answers/defer';
+import { type AnswerContext, followUps } from '#answers/follow';
 import type { ErrorHandler } from '#types';
 import type { ContextMenu, MenuType } from '#utils/command';
 import { modalResponse, replyResponse } from '#utils/response';
@@ -15,7 +16,7 @@ const USER: ApplicationCommandType.User = 2;
 export function answerMenu(
   interaction: APIContextMenuInteraction,
   menus: Map<string, ContextMenu>,
-  ctx: Pick<ExecutionContext, 'waitUntil'>,
+  ctx: AnswerContext,
   onError?: ErrorHandler,
 ): Response | Promise<Response> {
   const { data } = interaction;
@@ -36,5 +37,6 @@ export function answerMenu(
     reply: replyResponse,
     defer: deferAnswer(interaction, ctx, `${data.name} (${menu} menu)`, onError),
     modal: modalResponse,
+    ...followUps(interaction, ctx, `${data.name} (${menu} menu)`, onError),
   });
 }

@@ -1,3 +1,4 @@
+import type { AnswerContext } from '#answers/follow';
 import { editOriginal } from '#lib/discord';
 import type { ErrorHandler } from '#types';
 import type { Context } from '#utils/command';
@@ -10,7 +11,7 @@ type Work = Parameters<Context<Options>['defer']>[0];
 
 function later(
   interaction: { application_id: string; token: string },
-  ctx: Pick<ExecutionContext, 'waitUntil'>,
+  ctx: AnswerContext,
   where: string,
   work: Work,
   onError?: ErrorHandler,
@@ -43,7 +44,7 @@ function later(
 
 export function deferAnswer(
   interaction: { application_id: string; token: string },
-  ctx: Pick<ExecutionContext, 'waitUntil'>,
+  ctx: AnswerContext,
   where: string,
   onError?: ErrorHandler,
 ): Context<Options>['defer'] {
@@ -56,7 +57,7 @@ export function deferAnswer(
 
 export function deferUpdate(
   interaction: { application_id: string; token: string },
-  ctx: Pick<ExecutionContext, 'waitUntil'>,
+  ctx: AnswerContext,
   where: string,
   onError?: ErrorHandler,
 ): (work: Work) => Response {

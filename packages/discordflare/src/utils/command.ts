@@ -10,7 +10,7 @@ import type {
 
 import type { Schemas } from '#lib/routes';
 import { type Locales, localePayload } from '#utils/locale';
-import type { MessageOptions, ReplyOptions } from '#utils/message';
+import type { FollowUps, MessageOptions, ReplyOptions } from '#utils/message';
 import type { Modal } from '#utils/modal';
 import {
   type CommandOption,
@@ -36,7 +36,7 @@ export type Context<O extends Options> = {
     options?: { ephemeral?: boolean },
   ) => Response;
   modal: (modal: Modal, value?: string) => Response;
-};
+} & FollowUps;
 
 export type Access = {
   locales?: Locales;
@@ -76,7 +76,7 @@ export type MenuContext<T extends MenuType> = {
   reply: Context<Options>['reply'];
   defer: Context<Options>['defer'];
   modal: Context<Options>['modal'];
-};
+} & FollowUps;
 
 export type ContextMenu<T extends MenuType = MenuType> = {
   menu: T;

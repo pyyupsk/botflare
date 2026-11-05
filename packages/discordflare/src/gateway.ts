@@ -106,11 +106,16 @@ export function gateway(
             const { answer } = config.bot;
             const respond = async (): Promise<void> => {
               try {
-                const response = await answer(event.d, this.ctx);
+                const after: (() => Promise<void>)[] = [];
+                const response = await answer(event.d, {
+                  waitUntil: (promise) => this.ctx.waitUntil(promise),
+                  afterAnswer: (task) => after.push(task),
+                });
                 if (!response.ok) return;
 
                 const failed = await interactionCallback(event.d.id, event.d.token, response);
                 if (failed) await config.onError?.(failed, event.t);
+                else for (const task of after) this.ctx.waitUntil(task());
               } catch (error) {
                 await config.onError?.(error, event.t);
               }

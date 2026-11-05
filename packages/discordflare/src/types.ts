@@ -7,6 +7,7 @@ import type {
 } from 'discord-api-types/v10';
 
 import type { Context } from '#utils/command';
+import type { FollowUps } from '#utils/message';
 import type { Options } from '#utils/option';
 import type { modalResponse, replyResponse, updateResponse } from '#utils/response';
 import type { SelectMenu, SelectType } from '#utils/select';
@@ -27,7 +28,7 @@ export type ButtonContext = {
   update: typeof updateResponse;
   modal: typeof modalResponse;
   deferUpdate: (work: Parameters<Context<Options>['defer']>[0]) => Response;
-};
+} & FollowUps;
 
 /** What each kind of select menu gives its handler for one picked item. */
 export type SelectValue = {
@@ -46,7 +47,7 @@ export type SelectContext<V> = {
   update: typeof updateResponse;
   modal: typeof modalResponse;
   deferUpdate: (work: Parameters<Context<Options>['defer']>[0]) => Response;
-};
+} & FollowUps;
 
 /** A select menu made with `select()`, for the `selects` of a message and of `bot()`. */
 export type Select<T extends SelectType = SelectType, V = SelectValue[T]> = SelectMenu & {

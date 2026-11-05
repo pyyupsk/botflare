@@ -12,6 +12,7 @@ import type {
 import { answerAutocomplete } from '#answers/autocomplete';
 import { answerButton } from '#answers/button';
 import { answerCommand } from '#answers/command';
+import type { AnswerContext } from '#answers/follow';
 import { answerMenu } from '#answers/menu';
 import { answerModal } from '#answers/modal';
 import { answerSelect } from '#answers/select';
@@ -58,10 +59,7 @@ export type Bot = {
     controller: ScheduledController,
     env: { DISCORD_TOKEN: string } & Record<string, unknown>,
   ) => Promise<void>;
-  answer: (
-    interaction: APIInteraction,
-    ctx: Pick<ExecutionContext, 'waitUntil'>,
-  ) => Promise<Response>;
+  answer: (interaction: APIInteraction, ctx: AnswerContext) => Promise<Response>;
 };
 
 async function startGateway(env: Record<string, unknown>, name: string): Promise<void> {
@@ -112,10 +110,7 @@ export function bot(config: BotConfig): Bot {
   const modals = new Map((config.modals ?? []).map((m) => [m.id, m]));
   const selects = new Map((config.selects ?? []).map((s) => [s.id, s]));
 
-  const answer = async (
-    interaction: APIInteraction,
-    ctx: Pick<ExecutionContext, 'waitUntil'>,
-  ): Promise<Response> => {
+  const answer = async (interaction: APIInteraction, ctx: AnswerContext): Promise<Response> => {
     if (interaction.type === MESSAGE_COMPONENT && interaction.data.component_type !== BUTTON) {
       return answerSelect(
         interaction as APIMessageComponentSelectMenuInteraction,
@@ -132,7 +127,8 @@ export function bot(config: BotConfig): Bot {
         config.onError,
       );
     }
-    if (interaction.type === MODAL_SUBMIT) return answerModal(interaction, modals);
+    if (interaction.type === MODAL_SUBMIT)
+      return answerModal(interaction, modals, ctx, config.onError);
     if (interaction.type === AUTOCOMPLETE) {
       return answerAutocomplete(interaction, commands, config.onError);
     }

@@ -1,6 +1,7 @@
 import type { APIMessageComponentSelectMenuInteraction } from 'discord-api-types/v10';
 
 import { deferUpdate } from '#answers/defer';
+import { type AnswerContext, followUps } from '#answers/follow';
 import type { ErrorHandler, Select } from '#types';
 import { modalResponse, replyResponse, updateResponse } from '#utils/response';
 import { type SelectType, selectValues } from '#utils/select';
@@ -8,7 +9,7 @@ import { type SelectType, selectValues } from '#utils/select';
 export function answerSelect(
   interaction: APIMessageComponentSelectMenuInteraction,
   selects: Map<string, Select<SelectType, unknown>>,
-  ctx: Pick<ExecutionContext, 'waitUntil'>,
+  ctx: AnswerContext,
   onError?: ErrorHandler,
 ): Response | Promise<Response> {
   const picked = selects.get(interaction.data.custom_id);
@@ -20,6 +21,7 @@ export function answerSelect(
     reply: replyResponse,
     update: updateResponse,
     modal: modalResponse,
+    ...followUps(interaction, ctx, `select ${interaction.data.custom_id}`, onError),
     deferUpdate: deferUpdate(interaction, ctx, `select ${interaction.data.custom_id}`, onError),
   });
 }
