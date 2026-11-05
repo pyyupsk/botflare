@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest';
 
-import { callDiscord } from './rest';
+import { callDiscord } from '#lib/rest';
 
 afterEach(() => {
   vi.unstubAllGlobals();

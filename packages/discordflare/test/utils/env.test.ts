@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 
-import { syncEnv } from './env';
+import { syncEnv } from '#utils/env';
 
 const id = '1509466628683857930';
 

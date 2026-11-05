@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 
-import { message } from './message';
+import { message } from '#utils/message';
 
 const button = (i: number) => ({ type: 2, style: 1, label: `B${i}`, custom_id: `b${i}` });
 

@@ -1,8 +1,7 @@
 import { expect, it } from 'vitest';
 
 import { modal } from '#index';
-
-import { fieldValues, modalData } from './modal';
+import { fieldValues, modalData } from '#utils/modal';
 
 it('wraps each field in a label, required unless the field says otherwise', () => {
   const form = modal(

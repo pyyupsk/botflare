@@ -8,7 +8,7 @@ export default defineConfig({
     }),
   ],
   test: {
-    include: ['packages/*/src/**/*.test.ts'],
+    include: ['packages/*/test/**/*.test.ts'],
     passWithNoTests: true,
   },
 });

@@ -1,8 +1,7 @@
 import { expect, it } from 'vitest';
 
 import { command, option } from '#index';
-
-import { payload } from './command';
+import { payload } from '#utils/command';
 
 it('turns a command into the body Discord expects, required options first', () => {
   const roll = command(

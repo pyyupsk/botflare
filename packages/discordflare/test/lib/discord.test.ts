@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest';
 
-import { interactionCallback, putCommands } from './discord';
+import { interactionCallback, putCommands } from '#lib/discord';
 
 const env = { token: 'secret', applicationId: '1', guildId: undefined };
 

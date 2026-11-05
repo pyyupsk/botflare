@@ -5,7 +5,7 @@ import type {
 } from 'discord-api-types/v10';
 import { expect, it } from 'vitest';
 
-import { afterClose, type Session, Shard } from './shard';
+import { afterClose, type Session, Shard } from '#utils/shard';
 
 const presence: GatewayPresenceUpdateData = {
   status: 'idle' as PresenceUpdateStatus.Idle,
