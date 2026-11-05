@@ -1,0 +1,46 @@
+---
+title: Cron jobs
+description: Run a job on a schedule and post to a channel.
+sidebar:
+  order: 9
+---
+
+A cron job runs on a [Cron Trigger](https://developers.cloudflare.com/workers/configuration/cron-triggers/). Add the schedule to your Wrangler configuration, then add a job with the same expression to `cron` in `bot()`:
+
+```jsonc
+{
+  "triggers": { "crons": ["0 9 * * *"] },
+}
+```
+
+```ts
+import { bot } from 'botflare';
+
+const REPORTS_CHANNEL = '123456789012345678';
+
+export default bot({
+  commands: [],
+  cron: {
+    '0 9 * * *': async (c) => {
+      const error = await c.send(REPORTS_CHANNEL, 'Good morning', {
+        embeds: [{ title: 'Daily report', description: 'All systems normal' }],
+      });
+      if (error) console.error(error);
+    },
+  },
+});
+```
+
+- The key must match the expression in `triggers.crons` exactly.
+- `c.send(channelId, text, options)` posts with `DISCORD_TOKEN`. It takes the same [message options](/guides/answers/#message-options) as `reply`, and returns an `Error` if Discord refuses.
+- `c.controller` is the `ScheduledController` from Cloudflare, with `scheduledTime` and `cron`.
+- If the bot has a `gateway`, every Cron Trigger also starts the gateway connection when it is down.
+
+## Try a job locally
+
+Start Wrangler with `--test-scheduled`, then call the scheduled handler:
+
+```sh
+npx wrangler dev --test-scheduled
+curl "http://localhost:8787/__scheduled?cron=0+9+*+*+*"
+```

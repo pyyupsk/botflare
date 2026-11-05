@@ -1,0 +1,50 @@
+---
+title: Modals
+description: Show a form in a popup and read what the user typed.
+sidebar:
+  order: 6
+---
+
+A modal is a form that Discord shows in a popup. Open it from a command, a button, a select menu or a context menu.
+
+```ts
+import { bot, command, modal } from 'botflare';
+
+const feedback = modal(
+  {
+    id: 'feedback',
+    title: 'Feedback',
+    fields: {
+      idea: { label: 'Your idea', style: 'paragraph' },
+      email: { label: 'Email, if you want an answer', required: false },
+    },
+  },
+  (c) => c.reply(`Thanks! ${c.fields.email ? 'We will write back.' : ''}`, { ephemeral: true }),
+);
+
+const ask = command({ name: 'feedback', description: 'Send feedback' }, (c) => c.modal(feedback));
+
+export default bot({ commands: [ask], modals: [feedback] });
+```
+
+- `c.fields` holds the text of each field. A field is required unless it has `required: false`.
+- An empty field that is not required is `undefined`, and its type is `string | undefined`.
+- `style: 'paragraph'` shows a large text box. The default is `short`, one line.
+- Add the modal to `modals` in `bot()`, or the bot does not get the form back.
+
+## Carry a value
+
+To pass a value through the form, such as the id of the item it edits, open it with a second argument:
+
+```ts
+const rename = modal(
+  { id: 'rename', title: 'Rename', fields: { name: { label: 'New name' } } },
+  (c) => c.reply(`Renamed ${c.value} to ${c.fields.name}`),
+);
+
+const edit = command({ name: 'rename', description: 'Rename an item' }, (c) =>
+  c.modal(rename, 'item-7'),
+);
+```
+
+The handler gets the value as `c.value`.

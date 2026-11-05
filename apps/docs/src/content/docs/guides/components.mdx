@@ -1,0 +1,73 @@
+---
+title: Buttons and menus
+description: Buttons, link buttons and select menus, and how to answer them.
+sidebar:
+  order: 5
+---
+
+## Buttons
+
+Add buttons to a message, and a handler for each button `id` to `buttons` in `bot()`:
+
+```ts
+const order = command({ name: 'order', description: 'Order a pizza' }, (c) =>
+  c.reply('Confirm the order?', {
+    buttons: [
+      { id: 'confirm:42', label: 'Confirm', style: 'success' },
+      { id: 'cancel:42', label: 'Cancel', style: 'danger' },
+      { url: 'https://example.com/menu', label: 'Menu' },
+    ],
+  }),
+);
+
+export default bot({
+  commands: [order],
+  buttons: {
+    confirm: (c) => c.update(`Order ${c.value} confirmed`, { buttons: [] }),
+    cancel: (c) => c.update(`Order ${c.value} cancelled`, { buttons: [] }),
+  },
+});
+```
+
+- The part of the id after the first `:` comes to the handler as `c.value`. Use it to carry an id, a page number or other state.
+- `c.update` edits the message that has the button. `{ buttons: [] }` removes the buttons.
+- A button with a `url` instead of an `id` opens the link. It needs no handler.
+
+| Field      | Values                                                  |
+| ---------- | ------------------------------------------------------- |
+| `style`    | `primary` (default), `secondary`, `success` or `danger` |
+| `label`    | The text. A button needs a `label`, an `emoji` or both. |
+| `emoji`    | A Unicode emoji, or a custom emoji such as `<:name:id>` |
+| `disabled` | `true` greys the button out                             |
+
+A handler also has `c.reply`, `c.modal`, `c.deferUpdate` and the [follow-up calls](/guides/answers/#follow-ups). `c.deferUpdate(work)` keeps the message as it is and edits it when `work` is done, for a click that takes over 3 seconds.
+
+## Select menus
+
+```ts
+import { select } from 'botflare';
+
+const fruit = select(
+  'string',
+  { id: 'fruit', placeholder: 'Pick fruit', max: 2, options: { Apple: 'apple', Mango: 'mango' } },
+  (c) => c.update(`You picked ${c.values.join(', ')}`, { selects: [] }),
+);
+
+const pick = command({ name: 'pick', description: 'Pick fruit' }, (c) =>
+  c.reply('What do you like?', { selects: [fruit] }),
+);
+
+export default bot({ commands: [pick], selects: [fruit] });
+```
+
+Put the menu in the `selects` of a message, and in the `selects` of `bot()`. Each menu takes a row of its own, above the buttons.
+
+| Type          | What the user picks   | `c.values`                           |
+| ------------- | --------------------- | ------------------------------------ |
+| `string`      | One of your `options` | The picked values                    |
+| `user`        | Members of the server | Users, with their `member`           |
+| `role`        | Roles                 | Roles                                |
+| `channel`     | Channels              | Channels. Limit with `channelTypes`. |
+| `mentionable` | Users and roles       | Users and roles                      |
+
+`min` and `max` set how many items the user picks. Both default to 1.

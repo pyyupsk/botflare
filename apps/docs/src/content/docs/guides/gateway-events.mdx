@@ -1,0 +1,67 @@
+---
+title: Gateway events
+description: React to members, messages and other gateway events from a Durable Object.
+sidebar:
+  order: 8
+---
+
+`gateway()` makes a Durable Object class that keeps a connection to the Discord Gateway open. Give it the bot from `bot()`, and it answers interactions that arrive over the gateway. Give it `events`, and it runs a handler for each gateway event.
+
+```ts
+import { bot, mention } from 'botflare';
+import { gateway } from 'botflare/gateway';
+
+const WELCOME_CHANNEL = '123456789012345678';
+
+const app = bot({ commands: [], gateway: 'GATEWAY' });
+
+export const Gateway = gateway({
+  intents: ['Guilds', 'GuildMembers'],
+  bot: app,
+  events: {
+    GUILD_MEMBER_ADD: (member, c) =>
+      c.send(WELCOME_CHANNEL, `Welcome, ${member.user ? mention.user(member.user) : 'friend'}`),
+  },
+  onError: (error, where) => console.error(where, error),
+});
+
+export default app;
+```
+
+- The keys of `events` are gateway event names, such as `MESSAGE_CREATE` and `GUILD_MEMBER_ADD`. Each handler gets the event data with its type from discord-api-types.
+- `c.send(channelId, text, options)` posts a message. It takes the same [message options](/guides/answers/#message-options) as `reply`, and returns an `Error` if Discord refuses.
+- The Worker setup, the binding and the first start are in [Getting started](/guides/getting-started/) and [Deploy](/guides/deploy/).
+
+## Intents
+
+`intents` lists the event groups that the bot needs, by name, such as `Guilds`, `GuildMembers`, `GuildMessages` and `MessageContent`. If the name is wrong, TypeScript shows an error.
+
+`GuildMembers`, `GuildPresences` and `MessageContent` are privileged intents. Turn them on in the Developer Portal, on the Bot page, before you use them. Without `MessageContent`, message events have an empty `content`, except for direct messages, messages that mention the bot and the bot's own messages.
+
+## Status
+
+To show a status while the bot is connected, pass `presence`:
+
+```ts
+import { PresenceUpdateStatus } from 'discord-api-types/v10';
+
+gateway({
+  intents: ['Guilds'],
+  presence: {
+    status: PresenceUpdateStatus.Online,
+    activities: [{ name: 'with Workers', type: 0 }],
+    since: null,
+    afk: false,
+  },
+  events: {},
+});
+```
+
+`status` is an enum from discord-api-types, so import it. `type: 0` is a game activity.
+
+## The connection
+
+- The Durable Object resumes the session after a drop, so it does not miss events.
+- A Durable Object alarm checks the connection every minute and opens it again if it is down.
+- If Discord closes the connection for a reason that a retry cannot fix, such as a wrong token or an intent that is not turned on, the Durable Object stops.
+- One connection uses about 11,000 GB-s of Durable Object time per day. See [Deploy](/guides/deploy/) for the plan limits.

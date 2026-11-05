@@ -1,0 +1,140 @@
+---
+title: Commands
+description: Slash commands, options, subcommands, autocomplete, permissions and other languages.
+sidebar:
+  order: 3
+---
+
+A slash command has a name, a description, options and a handler. Add each command to `commands` in `bot()`, then run `npx botflare sync src/index.ts` to send the commands to Discord.
+
+```ts
+import { bot, command, option } from 'botflare';
+
+const greet = command(
+  {
+    name: 'greet',
+    description: 'Say hi to someone',
+    options: {
+      who: option('user', { description: 'Who to greet', required: true }),
+      loud: option('boolean', { description: 'Shout it' }),
+    },
+  },
+  (c) => {
+    const text = `Hi, ${c.options.who.username}`;
+
+    return c.reply(c.options.loud ? text.toUpperCase() : text);
+  },
+);
+
+export default bot({ commands: [greet] });
+```
+
+`c.options` takes its types from the options. `c.options.who` is a user, and `c.options.loud` is `boolean | undefined`, because the option is not `required`.
+
+## Option types
+
+| Type          | Value in the handler                                                 |
+| ------------- | -------------------------------------------------------------------- |
+| `string`      | `string`                                                             |
+| `integer`     | `number`, a whole number                                             |
+| `number`      | `number`                                                             |
+| `boolean`     | `boolean`                                                            |
+| `user`        | The user, with the server `member` when the command runs in a server |
+| `channel`     | The channel                                                          |
+| `role`        | The role                                                             |
+| `mentionable` | A user or a role                                                     |
+| `attachment`  | The file, with `filename`, `size`, `url` and `content_type`          |
+
+Discord sends the full user, channel, role or file with the command, so the handler does not need a REST call to read them.
+
+## Choices and limits
+
+```ts
+option('string', { description: 'Color', choices: { Red: 'red', Blue: 'blue' } });
+option('integer', { description: 'How many', min: 1, max: 10 });
+option('string', { description: 'Note', maxLength: 100 });
+option('channel', { description: 'Where', channelTypes: ['text', 'forum'] });
+```
+
+The keys of `choices` are the labels that Discord shows. With `choices`, the value type in the handler narrows to the values, such as `'red' | 'blue'`. A `string` option takes `minLength` and `maxLength`. An `integer` or `number` option takes `min` and `max`. A `channel` option takes `channelTypes`.
+
+## Autocomplete
+
+Instead of fixed `choices`, give a function that suggests values while the user types:
+
+```ts
+const FRUITS = ['apple', 'apricot', 'banana', 'cherry'];
+
+option('string', {
+  description: 'Fruit',
+  autocomplete: (c) => FRUITS.filter((name) => name.startsWith(c.value)),
+});
+```
+
+`c.value` is the text so far. Return up to 25 values, or `{ name, value }` objects to show a label that is different from the value. The function can be `async`. If it throws, `onError` gets the error and Discord shows no suggestions. The user can still type a value that is not in the list.
+
+## Subcommands and groups
+
+To split a command, give it `subcommands` instead of `options` and a handler:
+
+```ts
+const config = command({
+  name: 'config',
+  description: 'Settings',
+  subcommands: [
+    command({ name: 'get', description: 'Show a setting' }, (c) => c.reply('…')),
+    command({
+      name: 'role',
+      description: 'Role settings',
+      subcommands: [
+        command(
+          {
+            name: 'add',
+            description: 'Add a role',
+            options: { role: option('role', { description: 'Role', required: true }) },
+          },
+          (c) => c.reply(`Added ${c.options.role.name}`),
+        ),
+      ],
+    }),
+  ],
+});
+```
+
+This makes `/config get` and `/config role add`. A subcommand that has `subcommands` of its own is a group. Discord allows one level of groups.
+
+## Who sees a command
+
+A top-level command takes these settings:
+
+```ts
+command(
+  {
+    name: 'ban',
+    description: 'Ban a member',
+    permissions: ['BanMembers'],
+    contexts: ['guild'],
+    installs: ['guild'],
+  },
+  (c) => c.reply('…'),
+);
+```
+
+- `permissions` shows the command to members who have all of these permissions. `[]` shows it to admins only. Server admins can change this in Server Settings, under Integrations.
+- `contexts` sets where the command shows: `guild`, `bot_dm` or `private_channel`. Discord applies it to commands that you send to every server, not to commands for one server.
+- `installs` sets how the app must be installed: `guild` or `user`.
+
+## Other languages
+
+```ts
+command(
+  {
+    name: 'roll',
+    description: 'Roll a die',
+    locales: { th: { name: 'ทอย', description: 'ทอยลูกเต๋า' } },
+  },
+  (c) => c.reply('…'),
+);
+```
+
+The keys are Discord locales, such as `th`, `ja` and `pt-BR`. An option takes `locales` too. The handler always gets the default name.

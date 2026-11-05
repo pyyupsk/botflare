@@ -1,0 +1,37 @@
+---
+title: REST
+description: Call any Discord route as the bot, with types from the Discord API spec.
+sidebar:
+  order: 10
+---
+
+`rest` calls the Discord REST API as the bot, with `DISCORD_TOKEN` from the Worker environment. Each method takes a route from the [Discord API spec](https://github.com/discord/discord-api-spec), and the path values, query, body and result take their types from that route.
+
+```ts
+import { rest } from 'botflare';
+
+const [error, member] = await rest.get('/guilds/{guild_id}/members/{user_id}', {
+  path: { guild_id, user_id },
+});
+if (error) return c.reply('Not a member');
+
+await rest.put('/guilds/{guild_id}/members/{user_id}/roles/{role_id}', {
+  path: { guild_id, user_id, role_id },
+  reason: 'Joined the event',
+});
+```
+
+- The methods are `rest.get`, `rest.post`, `rest.put`, `rest.patch` and `rest.delete`. A route that does not exist, a method that the route does not have, a missing path value or a wrong body type is a TypeScript error.
+- Each call returns `[error, data]` and does not throw. `data` is `null` when Discord answers 204 No Content.
+- `reason` is the text that shows in the audit log of the server. Every method except `get` takes it.
+- `files` attaches files on routes that take them, such as `/channels/{channel_id}/messages`.
+
+## Rate limits
+
+If Discord answers 429, `rest` waits for `retry_after` and tries again, up to three tries in all. After the third 429, it returns the error.
+
+## Where the types come from
+
+The types cover 157 paths, generated from commit `4e75626` of discord/discord-api-spec. They are separate from the types of discord-api-types that handlers get for interactions and events, so a field can differ slightly, such as `null` in one and a missing field in the other.
+
+To use a newer spec, change `SPEC_COMMIT` in `packages/botflare/scripts/routes.ts` and run `bun run gen:routes` in `packages/botflare`.

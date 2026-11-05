@@ -1,0 +1,91 @@
+---
+title: Answers
+description: Reply, defer, ephemeral messages, embeds, files, mentions and follow-ups.
+sidebar:
+  order: 4
+---
+
+Discord waits 3 seconds for the first answer to an interaction. A handler returns one of these answers:
+
+| Answer                         | What Discord shows                                                                 |
+| ------------------------------ | ---------------------------------------------------------------------------------- |
+| `c.reply(text, options)`       | A new message.                                                                     |
+| `c.defer(work, { ephemeral })` | "Thinking…", then the result of `work`. Use it for work that takes over 3 seconds. |
+| `c.update(text, options)`      | Buttons and menus only: the message of the button or menu, edited.                 |
+| `c.deferUpdate(work)`          | Buttons and menus only: the same message, then edited with the result of `work`.   |
+| `c.modal(form, value)`         | A form in a popup. See [Modals](/guides/modals/).                                  |
+
+## Message options
+
+`reply`, `update`, `send` and the result of `defer` take the same options:
+
+```ts
+c.reply('Report ready', {
+  embeds: [{ title: 'Uptime', description: '99.9%', color: 0xff6a4d }],
+  buttons: [{ id: 'refresh', label: 'Refresh' }],
+  files: [{ name: 'report.csv', data: 'name,count\napple,3\n' }],
+  ephemeral: true,
+});
+```
+
+| Option            | What it does                                                                      |
+| ----------------- | --------------------------------------------------------------------------------- |
+| `embeds`          | Embeds, with the fields that Discord accepts.                                     |
+| `buttons`         | Buttons. See [Buttons and menus](/guides/components/).                            |
+| `selects`         | Select menus. See [Buttons and menus](/guides/components/).                       |
+| `files`           | Files to attach. Each has a `name`, `data` and an optional `description`.         |
+| `allowedMentions` | Who the message can ping. See below.                                              |
+| `ephemeral`       | `reply` and `defer` only. Shows the message to the user who ran the command only. |
+
+`data` in a file can be a string, an `ArrayBuffer`, a `Uint8Array` or a `Blob`.
+
+## Slow work
+
+```ts
+command({ name: 'report', description: 'Build a report' }, (c) =>
+  c.defer(async () => {
+    const rows = await buildReport();
+
+    return { content: `${rows.length} rows`, files: [{ name: 'report.csv', data: toCsv(rows) }] };
+  }),
+);
+```
+
+`work` returns the text, or an object with `content` and the message options. If `work` throws, the answer changes to "Something went wrong." and `onError` gets the error.
+
+## Mentions
+
+Messages ping nobody by default, even when the text has `@everyone` or `<@id>`. To ping, pass `allowedMentions`:
+
+```ts
+import { mention, time } from 'botflare';
+
+c.reply(`${mention.user(user)}, your turn ${time(Date.now(), 'relative')}`, {
+  allowedMentions: { users: [user.id] },
+});
+```
+
+`mention` has `user`, `role`, `channel` and `command`. `time` writes a timestamp that Discord shows in the time zone of each reader. Its styles are `short`, `long`, `short-date`, `long-date`, `short-time`, `long-time` and `relative`.
+
+## Follow-ups
+
+To send more after the first answer, call `c.after(work)` before you return the answer. `work` runs after Discord has the answer:
+
+```ts
+command({ name: 'poll', description: 'Start a poll' }, (c) => {
+  c.after(async () => {
+    await c.followUp('Vote with the buttons below', { ephemeral: true });
+    await c.editReply('Poll is open');
+  });
+
+  return c.reply('Opening the poll…');
+});
+```
+
+| Call                         | What it does              |
+| ---------------------------- | ------------------------- |
+| `c.followUp(text, options)`  | Sends a new message.      |
+| `c.editReply(text, options)` | Edits the first answer.   |
+| `c.deleteReply()`            | Deletes the first answer. |
+
+Each returns an `Error` if Discord refuses, or `null`. The work of `defer` and `deferUpdate` can call them too.

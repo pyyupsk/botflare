@@ -1,0 +1,29 @@
+---
+title: Context menus
+description: Commands in the Apps menu when the user right-clicks a user or a message.
+sidebar:
+  order: 7
+---
+
+A context menu command shows in the Apps menu when the user right-clicks a user or a message. It has no options and no description.
+
+```ts
+import { bot, contextMenu } from 'botflare';
+
+const avatar = contextMenu('user', { name: 'Show avatar' }, (c) =>
+  c.reply(`${c.target.username}`, { ephemeral: true }),
+);
+
+const words = contextMenu('message', { name: 'Count words' }, (c) =>
+  c.reply(`${c.target.content.split(/\s+/).filter(Boolean).length} words`, { ephemeral: true }),
+);
+
+export default bot({ commands: [avatar, words] });
+```
+
+- Add context menus to `commands`, next to the slash commands, and run `npx botflare sync` again.
+- `c.target` is the user or the message that the user clicked.
+- The handler has `reply`, `defer`, `modal` and the [follow-up calls](/guides/answers/#follow-ups).
+- A context menu takes `permissions`, `contexts`, `installs` and `locales` like a command. `locales` takes a `name` only.
+
+A context menu and a slash command can have the same name. botflare keeps them apart.
