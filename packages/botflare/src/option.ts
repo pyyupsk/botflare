@@ -21,6 +21,30 @@ type Choice<T extends keyof OptionValue> = T extends 'string'
     ? number
     : never;
 
+type OptionConfig<T extends keyof OptionValue, R extends boolean, C> = {
+  /** The text Discord shows under the option name. */
+  description: string;
+  /** Whether the user must fill it in. Defaults to `false`. */
+  required?: R;
+  /**
+   * The only values the user can pick, keyed by the label Discord shows. For a `string`, `integer`
+   * or `number` option.
+   */
+  choices?: C;
+  /** The name and description in other languages, keyed by Discord locale. */
+  locales?: Locales;
+} & OptionLimits<T> & {
+    /**
+     * Suggests values as the user types, instead of fixed `choices`. Gets what the user has typed
+     * so far as `c.value` and returns up to 25 suggestions, as plain values or as `{ name, value }`.
+     */
+    autocomplete?: [Choice<T>] extends [never]
+      ? never
+      : [C] extends [never]
+        ? (c: AutocompleteContext) => Suggestion<Choice<T>>[] | Promise<Suggestion<Choice<T>>[]>
+        : never;
+  };
+
 /**
  * Declares one option of a slash command. The handler reads its value from `c.options`,
  * typed from `type`, and `undefined` when the option is not `required`.
@@ -38,9 +62,6 @@ type Choice<T extends keyof OptionValue> = T extends 'string'
  * @param type The value type Discord asks the user for. `user`, `channel` and `role` give the full
  *   object Discord sends with the command, not only its id.
  * @param config How Discord shows the option.
- * @param config.description The text Discord shows under the option name.
- * @param config.required Whether the user must fill it in. Defaults to `false`.
- * @param config.locales The name and description in other languages, keyed by Discord locale.
  * @returns The option, for the `options` of {@link command}.
  * @example
  * option('integer', { description: 'How many dice', required: true, min: 1, max: 6 });
@@ -52,18 +73,7 @@ export function option<
   const C extends Record<string, Choice<T>> = never,
 >(
   type: T,
-  config: {
-    description: string;
-    required?: R;
-    choices?: C;
-    locales?: Locales;
-  } & OptionLimits<T> & {
-      autocomplete?: [Choice<T>] extends [never]
-        ? never
-        : [C] extends [never]
-          ? (c: AutocompleteContext) => Suggestion<Choice<T>>[] | Promise<Suggestion<Choice<T>>[]>
-          : never;
-    },
+  config: OptionConfig<T, R, C>,
 ): Option<T, R, [C] extends [never] ? OptionValue[T] : C[keyof C]> {
   const built: Option = { ...config, type, required: config.required ?? false };
 

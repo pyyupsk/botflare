@@ -2,6 +2,25 @@ import type { Select, SelectContext, SelectValue } from '#types';
 import type { ChannelType } from '#utils/option';
 import type { SelectType } from '#utils/select';
 
+type SelectConfig<T extends SelectType, O> = {
+  /** The id Discord sends back with the pick. */
+  id: string;
+  /** The text the menu shows before a pick. */
+  placeholder?: string;
+  /** The fewest items the user must pick. Defaults to 1. */
+  min?: number;
+  /** The most items the user can pick. Defaults to 1. */
+  max?: number;
+  /** The items of a `string` menu, keyed by the label Discord shows. */
+  options?: O;
+} & (T extends 'string' ? { options: unknown } : unknown) &
+  (T extends 'channel'
+    ? {
+        /** The channel types the user can pick, such as `['text', 'forum']`. */
+        channelTypes?: ChannelType[];
+      }
+    : unknown);
+
 /**
  * Declares a select menu and the handler that runs when the user picks from it. Put it in the
  * `selects` of a message, such as `c.reply('Pick one', { selects: [menu] })`, and in the `selects` of
@@ -13,10 +32,6 @@ import type { SelectType } from '#utils/select';
  *
  * @param type What the user picks from.
  * @param config How Discord shows the menu.
- * @param config.id The id Discord sends back with the pick.
- * @param config.placeholder The text the menu shows before a pick.
- * @param config.min The fewest items the user must pick. Defaults to 1.
- * @param config.max The most items the user can pick. Defaults to 1.
  * @param run Answers the pick. `c.values` holds the picked items.
  * @returns The select menu.
  * @example
@@ -29,14 +44,7 @@ export function select<
   const O extends Record<string, T extends 'string' ? string : never> = never,
 >(
   type: T,
-  config: {
-    id: string;
-    placeholder?: string;
-    min?: number;
-    max?: number;
-    options?: O;
-  } & (T extends 'string' ? { options: unknown } : unknown) &
-    (T extends 'channel' ? { channelTypes?: ChannelType[] } : unknown),
+  config: SelectConfig<T, O>,
   run: (
     c: SelectContext<[O] extends [never] ? SelectValue[T] : O[keyof O]>,
   ) => Response | Promise<Response>,

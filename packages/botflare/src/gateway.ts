@@ -18,10 +18,24 @@ const WATCH_MS = 60_000;
 const INTERACTION_CREATE = 'INTERACTION_CREATE' as GatewayDispatchEvents.InteractionCreate;
 
 type GatewayConfig = {
+  /**
+   * The names of the gateway intents the bot needs, such as `'GuildMessages'`. Turn on privileged
+   * ones, such as `'MessageContent'`, in the Developer Portal first.
+   */
   intents: Intent[];
+  /** The status the bot shows while it is connected. */
   presence?: GatewayPresenceUpdateData;
+  /**
+   * The bot from `bot()`. Its handlers answer the commands, buttons and modals that arrive over the
+   * gateway, so the application needs no Interactions Endpoint URL.
+   */
   bot?: Pick<Bot, 'answer'>;
+  /** Gets errors from event handlers and from answering interactions. */
   onError?: ErrorHandler;
+  /**
+   * A handler per dispatch event name, such as `MESSAGE_CREATE`. `c.send` posts a message to a
+   * channel, with optional `buttons` and `embeds`.
+   */
   events: {
     [P in GatewayDispatchPayload as P['t']]?: (data: P['d'], c: { send: Send }) => unknown;
   };
@@ -35,14 +49,6 @@ type GatewayConfig = {
  * It reads `DISCORD_TOKEN` from the Worker environment.
  *
  * @param config What the bot listens to.
- * @param config.intents The names of the gateway intents the bot needs, such as `'GuildMessages'`.
- *   Turn on privileged ones, such as `'MessageContent'`, in the Developer Portal first.
- * @param config.presence The status the bot shows while it is connected.
- * @param config.events A handler per dispatch event name. `c.send` posts a message to a channel,
- *   with optional `buttons` and `embeds`.
- * @param config.onError Gets errors from event handlers and from answering interactions.
- * @param config.bot The bot from `bot()`. Its handlers answer the commands, buttons and modals that
- *   arrive over the gateway, so the application needs no Interactions Endpoint URL.
  * @returns The Durable Object class.
  * @example
  * import { bot } from 'botflare';
