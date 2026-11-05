@@ -2,7 +2,10 @@
 title: botflare
 description: Build Discord bots that run on Cloudflare Workers.
 template: splash
+prev: false
+next: false
 hero:
+  title: Discord bots on <span class="accent">Cloudflare Workers</span>
   tagline: Build Discord bots that run on Cloudflare Workers, with types from the official Discord API spec.
   actions:
     - text: Get started
@@ -15,6 +18,21 @@ hero:
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
+
+```ts title="src/index.ts"
+import { bot, command, option } from 'botflare';
+
+const roll = command(
+  {
+    name: 'roll',
+    description: 'Roll a die',
+    options: { sides: option('integer', { description: 'Sides', min: 2, max: 100 }) },
+  },
+  (c) => c.reply(`You rolled ${1 + Math.floor(Math.random() * (c.options.sides ?? 6))}`),
+);
+
+export default bot({ commands: [roll] });
+```
 
 <CardGrid>
   <Card title="Interactions" icon="rocket">
