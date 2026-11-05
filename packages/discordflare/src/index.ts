@@ -11,20 +11,18 @@ import type {
 import { editOriginal, type Send, sendMessage } from '#lib/discord';
 import { createRest, type Rest } from '#lib/rest';
 import type { Schemas } from '#lib/routes';
-import {
-  type Command,
-  type Context,
-  type Option,
-  type OptionValue,
-  type Options,
-  type ChannelType,
-  type AutocompleteContext,
-  findCommand,
-  optionValues,
-  type Suggestion,
-} from '#utils/command';
+import { type Command, type Context, findCommand } from '#utils/command';
 import { message, type MessageOptions, type ReplyOptions } from '#utils/message';
 import { type Fields, type Modal, fieldValues, modalData } from '#utils/modal';
+import {
+  type AutocompleteContext,
+  type ChannelType,
+  type Option,
+  type Options,
+  type OptionValue,
+  optionValues,
+  type Suggestion,
+} from '#utils/option';
 import { verify } from '#utils/verify';
 
 const PING: InteractionType.Ping = 1;
