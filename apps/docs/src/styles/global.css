@@ -96,6 +96,21 @@ mobile-starlight-toc .toggle,
   border-radius: 0;
 }
 
+site-search dialog {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+site-search dialog::backdrop {
+  backdrop-filter: none;
+}
+
+#starlight__search {
+  --pagefind-ui-border-radius: 0;
+  --pagefind-ui-image-border-radius: 0;
+  --sl-search-corners: 0;
+}
+
 .site-title {
   color: var(--sl-color-white);
 }
