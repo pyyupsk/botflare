@@ -390,6 +390,20 @@ it('starts the gateway on every cron tick when the bot names its binding', async
   expect(ensure).toHaveBeenCalledOnce();
 });
 
+it('starts the gateway when someone opens the Worker URL', async () => {
+  const ensure = vi.fn(async () => {});
+  const withGateway = bot({ commands: [], gateway: 'GATEWAY' });
+
+  const res = await withGateway.fetch(
+    new Request('https://bot.test/'),
+    { ...env, GATEWAY: { getByName: () => ({ ensure }) } },
+    ctx,
+  );
+
+  expect(await res.text()).toBe('gateway started');
+  expect(ensure).toHaveBeenCalledOnce();
+});
+
 it('reports deferred work that fails and edits the answer so it does not stay on thinking', async () => {
   const fetch = vi.fn(async () => Response.json({}));
   vi.stubGlobal('fetch', fetch);

@@ -165,7 +165,7 @@ export type Bot = {
   commands: Command[];
   fetch: (
     request: Request,
-    env: { DISCORD_PUBLIC_KEY: string },
+    env: { DISCORD_PUBLIC_KEY: string } & Record<string, unknown>,
     ctx: ExecutionContext,
   ) => Promise<Response>;
   scheduled: (
@@ -177,6 +177,12 @@ export type Bot = {
     ctx: Pick<ExecutionContext, 'waitUntil'>,
   ) => Promise<Response>;
 };
+
+async function startGateway(env: Record<string, unknown>, name: string): Promise<void> {
+  const namespace = env[name] as DurableObjectNamespace;
+  const stub = namespace.getByName('main') as unknown as { ensure(): Promise<void> };
+  await stub.ensure();
+}
 
 /**
  * Creates a Worker handler for the Interactions Endpoint URL of a Discord application.
@@ -190,7 +196,8 @@ export type Bot = {
  * @param config.onError Gets errors from deferred work. If that work fails, the bot also edits the
  *   answer to "Something went wrong." so it does not stay on "thinking…".
  * @param config.gateway The name of the Durable Object binding that holds the class from `gateway()`.
- *   Every Cron Trigger then starts the gateway connection or reconnects it.
+ *   Open the Worker URL once after the first deploy to start the connection. A GET request or any
+ *   Cron Trigger starts it again if it is down.
  * @param config.cron Runs on a Cron Trigger, keyed by the cron expression from your Wrangler config.
  *   `c.send` posts a message to a channel with `DISCORD_TOKEN` and returns an `Error` if Discord refuses.
  * @param config.buttons Answers a click, keyed by the button id given to `reply`. An id such as
@@ -278,11 +285,7 @@ export function bot(config: BotConfig): Bot {
     commands: config.commands,
     answer,
     async scheduled(controller, env) {
-      if (config.gateway) {
-        const namespace = env[config.gateway] as DurableObjectNamespace;
-        const stub = namespace.getByName('main') as unknown as { ensure(): Promise<void> };
-        await stub.ensure();
-      }
+      if (config.gateway) await startGateway(env, config.gateway);
 
       const job = config.cron?.[controller.cron];
       if (!job) return;
@@ -293,6 +296,11 @@ export function bot(config: BotConfig): Bot {
       });
     },
     async fetch(request, env, ctx) {
+      if (request.method === 'GET' && config.gateway) {
+        await startGateway(env, config.gateway);
+        return new Response('gateway started');
+      }
+
       if (request.method !== 'POST') return new Response(null, { status: 405 });
 
       if (!PUBLIC_KEY.test(env.DISCORD_PUBLIC_KEY)) {
