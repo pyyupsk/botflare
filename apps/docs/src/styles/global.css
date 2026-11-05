@@ -96,6 +96,21 @@ mobile-starlight-toc .toggle,
   border-radius: 0;
 }
 
+starlight-tabs .tab > [role='tab'] {
+  padding-inline: 0.625rem;
+}
+
+.sl-menu-button {
+  border: 1px solid var(--sl-color-gray-5);
+  background-color: transparent;
+  color: var(--sl-color-white);
+  box-shadow: none;
+}
+
+.sl-menu-button:has(~ :popover-open) {
+  background-color: var(--sl-color-gray-6);
+}
+
 site-search dialog {
   border-radius: 0;
   box-shadow: none;
