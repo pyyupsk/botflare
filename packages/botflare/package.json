@@ -1,6 +1,6 @@
 {
   "name": "botflare",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Discord bots on Cloudflare Workers, with gateway events, typed REST and Durable Objects",
   "keywords": [
     "cloudflare",
