@@ -1,5 +1,6 @@
 // @ts-check
 import starlight from '@astrojs/starlight';
+import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
@@ -27,8 +28,12 @@ export default defineConfig({
       customCss: [
         '@fontsource-variable/geist',
         '@fontsource-variable/geist-mono',
-        './src/styles/theme.css',
+        './src/styles/global.css',
       ],
     }),
   ],
+
+  vite: {
+    plugins: [tailwindcss()],
+  },
 });
