@@ -4,11 +4,9 @@ import type { Schemas } from '#lib/routes';
 
 export type Button = { id: string; label: string };
 
-export type ReplyOptions = {
-  buttons?: Button[];
-  embeds?: Schemas['RichEmbed'][];
-  ephemeral?: boolean;
-};
+export type MessageOptions = { buttons?: Button[]; embeds?: Schemas['RichEmbed'][] };
+
+export type ReplyOptions = MessageOptions & { ephemeral?: boolean };
 
 const PER_ROW = 5;
 const EPHEMERAL: MessageFlags.Ephemeral = 64;

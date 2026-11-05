@@ -8,7 +8,7 @@ import type {
 } from 'discord-api-types/v10';
 
 import type { Schemas } from '#lib/routes';
-import type { ReplyOptions } from '#utils/message';
+import type { MessageOptions, ReplyOptions } from '#utils/message';
 import type { Modal } from '#utils/modal';
 
 export type OptionValue = {
@@ -38,7 +38,7 @@ export type Context<O extends Options> = {
   };
   reply: (content: string, options?: ReplyOptions) => Response;
   defer: (
-    work: () => Promise<string | ({ content: string } & Omit<ReplyOptions, 'ephemeral'>)>,
+    work: () => Promise<string | ({ content: string } & MessageOptions)>,
     options?: { ephemeral?: boolean },
   ) => Response;
   modal: (modal: Modal) => Response;

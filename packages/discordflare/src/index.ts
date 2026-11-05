@@ -19,7 +19,7 @@ import {
   type Options,
   optionValues,
 } from '#utils/command';
-import { message, type ReplyOptions } from '#utils/message';
+import { message, type MessageOptions, type ReplyOptions } from '#utils/message';
 import { type Fields, type Modal, fieldValues, modalData } from '#utils/modal';
 import { verify } from '#utils/verify';
 
@@ -133,7 +133,7 @@ function reply(content: string, options?: ReplyOptions): Response {
   return Response.json(response);
 }
 
-function update(content: string, options?: Omit<ReplyOptions, 'ephemeral'>): Response {
+function update(content: string, options?: MessageOptions): Response {
   const response: Schemas['UpdateMessageInteractionCallbackRequest'] = {
     type: 7,
     data: message(content, options),
@@ -221,7 +221,8 @@ async function startGateway(env: Record<string, unknown>, name: string): Promise
  *   Open the Worker URL once after the first deploy to start the connection. A GET request or any
  *   Cron Trigger starts it again if it is down.
  * @param config.cron Runs on a Cron Trigger, keyed by the cron expression from your Wrangler config.
- *   `c.send` posts a message to a channel with `DISCORD_TOKEN` and returns an `Error` if Discord refuses.
+ *   `c.send` posts a message to a channel with `DISCORD_TOKEN`, with optional `buttons` and `embeds`,
+ *   and returns an `Error` if Discord refuses.
  * @param config.buttons Answers a click, keyed by the button id given to `reply`. An id such as
  *   `page:2` runs the `page` handler with `c.value` set to `'2'`. `update` edits the message that
  *   holds the button. Pass `{ buttons: [] }` to remove them.
@@ -318,7 +319,8 @@ export function bot(config: BotConfig): Bot {
 
       await job({
         controller,
-        send: (channelId, content) => sendMessage(env.DISCORD_TOKEN, channelId, content),
+        send: (channelId, content, options) =>
+          sendMessage(env.DISCORD_TOKEN, channelId, content, options),
       });
     },
     async fetch(request, env, ctx) {

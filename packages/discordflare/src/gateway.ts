@@ -36,7 +36,8 @@ type GatewayConfig = {
  * @param config.intents The names of the gateway intents the bot needs, such as `'GuildMessages'`.
  *   Turn on privileged ones, such as `'MessageContent'`, in the Developer Portal first.
  * @param config.presence The status the bot shows while it is connected.
- * @param config.events A handler per dispatch event name. `c.send` posts a message to a channel.
+ * @param config.events A handler per dispatch event name. `c.send` posts a message to a channel,
+ *   with optional `buttons` and `embeds`.
  * @param config.onError Gets errors from event handlers and from answering interactions.
  * @param config.bot The bot from `bot()`. Its handlers answer the commands, buttons and modals that
  *   arrive over the gateway, so the application needs no Interactions Endpoint URL.
@@ -83,8 +84,8 @@ export function gateway(
       const saved = stored?.intents === identity.intents ? stored : null;
 
       const ws = new WebSocket(`${saved?.url ?? GATEWAY}/?v=10&encoding=json`);
-      const send: Send = (channelId, content) =>
-        sendMessage(this.env.DISCORD_TOKEN, channelId, content);
+      const send: Send = (channelId, content, options) =>
+        sendMessage(this.env.DISCORD_TOKEN, channelId, content, options);
 
       const shard = new Shard(this.env.DISCORD_TOKEN, identity, saved, {
         send: (payload) => ws.send(JSON.stringify(payload)),

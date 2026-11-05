@@ -1,6 +1,7 @@
 import { callDiscord } from '#lib/rest';
 import type { Schemas } from '#lib/routes';
 import type { SyncEnv } from '#utils/env';
+import { message, type MessageOptions } from '#utils/message';
 
 export async function putCommands(
   env: SyncEnv,
@@ -43,16 +44,21 @@ export async function editOriginal(
   return error;
 }
 
-export type Send = (channelId: string, content: string) => Promise<Error | null>;
+export type Send = (
+  channelId: string,
+  content: string,
+  options?: MessageOptions,
+) => Promise<Error | null>;
 
 export async function sendMessage(
   token: string,
   channelId: string,
   content: string,
+  options: MessageOptions = {},
 ): Promise<Error | null> {
   const [error] = await callDiscord(token, 'post', '/channels/{channel_id}/messages', {
     path: { channel_id: channelId },
-    body: { content },
+    body: message(content, { buttons: options.buttons, embeds: options.embeds }),
   });
 
   return error;
