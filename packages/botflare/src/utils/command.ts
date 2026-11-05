@@ -21,8 +21,11 @@ import {
 } from '#utils/option';
 import { type Permission, permissionBits } from '#utils/permissions';
 
+/** What the handler of a slash command gets. */
 export type Context<O extends Options> = {
+  /** The interaction as Discord sent it. */
   interaction: APIChatInputApplicationCommandInteraction;
+  /** The option values, keyed by name. An option that is not required can be `undefined`. */
   options: {
     [K in keyof O]: O[K] extends Option<keyof OptionValue, infer R, infer V>
       ? R extends true
@@ -30,18 +33,36 @@ export type Context<O extends Options> = {
         : V | undefined
       : never;
   };
+  /** Answers within 3 seconds. Return what it gives. */
   reply: (content: string, options?: ReplyOptions) => Response;
+  /**
+   * Shows "thinking…" now, then edits the answer to what `work` returns: the text, or
+   * `{ content, buttons, embeds }`. Use it for work that takes longer than 3 seconds.
+   */
   defer: (
     work: () => Promise<string | ({ content: string } & MessageOptions)>,
     options?: { ephemeral?: boolean },
   ) => Response;
+  /** Opens a modal made with `modal()`. `value` comes back to its handler as `c.value`. */
   modal: (modal: Modal, value?: string) => Response;
 } & FollowUps;
 
+/** Who sees a command or a context menu item, and where. */
 export type Access = {
+  /**
+   * The name and description in other languages, keyed by Discord locale, such as
+   * `{ th: { name: 'ทอย', description: 'ทอยลูกเต๋า' } }`. The handler still gets the default name.
+   */
   locales?: Locales;
+  /**
+   * Who sees it by default: members with all of these permissions, such as `['ManageGuild']`.
+   * Pass `[]` to show it to admins only. Server admins can change this in Server Settings.
+   * Applies to a top-level command only.
+   */
   permissions?: Permission[];
+  /** Where it shows: `guild`, `bot_dm` or `private_channel`. */
   contexts?: ('guild' | 'bot_dm' | 'private_channel')[];
+  /** How the app must be installed for it: `guild` or `user`. */
   installs?: ('guild' | 'user')[];
 };
 

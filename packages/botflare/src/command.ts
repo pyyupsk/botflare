@@ -11,14 +11,6 @@ import type { Options } from '#utils/option';
  * @param config.name The name the user types after `/`.
  * @param config.description The text Discord shows under the name.
  * @param config.options The options, keyed by name, made with {@link option}.
- * @param config.permissions Who sees the command by default: members with all of these
- *   permissions, such as `['ManageGuild']`. Pass `[]` to show it to admins only. Server admins can
- *   change this in Server Settings. Applies to a top-level command only.
- * @param config.contexts Where the command shows: `guild`, `bot_dm` or `private_channel`.
- * @param config.installs How the app must be installed for the command: `guild` or `user`.
- * @param config.locales The name and description in other languages, keyed by Discord locale,
- *   such as `{ th: { name: 'ทอย', description: 'ทอยลูกเต๋า' } }`. The handler still gets the
- *   default name.
  * @param run Answers the command. It gets the interaction, the typed option values, `reply`
  *   for an answer within 3 seconds and `defer` for work that takes longer. Pass
  *   `{ ephemeral: true }` to either so only the user who ran the command sees the answer, `buttons`
