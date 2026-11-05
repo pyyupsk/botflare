@@ -1,4 +1,4 @@
-import { createExecutionContext } from 'cloudflare:test';
+import { createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
 import { afterEach, expect, it, vi } from 'vitest';
 
 import { bot } from '#index';
@@ -69,4 +69,27 @@ it('keeps the value from the first colon on, colons included', async () => {
   await app2.fetch(await signed(click('edit:a:b')), env, ctx);
 
   expect(seen).toEqual([undefined, 'a:b']);
+});
+
+it('keeps the message while slow work runs, then edits it in', async () => {
+  const fetch = vi.fn(async () => Response.json({}));
+  vi.stubGlobal('fetch', fetch);
+  const slowButtons = bot({
+    commands: [],
+    buttons: {
+      refresh: (c) => c.deferUpdate(async () => ({ content: 'fresh', buttons: [] })),
+    },
+  });
+
+  const res = await slowButtons.fetch(await signed(click('refresh')), env, ctx);
+  await waitOnExecutionContext(ctx);
+
+  expect(await res.json()).toEqual({ type: 6 });
+  expect(fetch).toHaveBeenCalledWith(
+    'https://discord.com/api/v10/webhooks/7/interaction-token/messages/@original',
+    expect.objectContaining({
+      method: 'PATCH',
+      body: JSON.stringify({ content: 'fresh', allowed_mentions: { parse: [] }, components: [] }),
+    }),
+  );
 });

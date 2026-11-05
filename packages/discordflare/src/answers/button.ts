@@ -1,11 +1,14 @@
 import type { APIMessageComponentButtonInteraction } from 'discord-api-types/v10';
 
-import type { ButtonContext } from '#types';
+import { deferUpdate } from '#answers/defer';
+import type { ButtonContext, ErrorHandler } from '#types';
 import { modalResponse, replyResponse, updateResponse } from '#utils/response';
 
 export function answerButton(
   interaction: APIMessageComponentButtonInteraction,
   buttons: Record<string, (c: ButtonContext) => Response | Promise<Response>> = {},
+  ctx: Pick<ExecutionContext, 'waitUntil'>,
+  onError?: ErrorHandler,
 ): Response | Promise<Response> {
   const id = interaction.data.custom_id;
   const colon = id.indexOf(':');
@@ -19,5 +22,6 @@ export function answerButton(
     reply: replyResponse,
     update: updateResponse,
     modal: modalResponse,
+    deferUpdate: deferUpdate(interaction, ctx, `button ${name}`, onError),
   });
 }

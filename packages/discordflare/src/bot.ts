@@ -92,7 +92,8 @@ async function startGateway(env: Record<string, unknown>, name: string): Promise
  *   holds the button. Pass `{ buttons: [] }` to remove them.
  *   A button takes a `label`, an `emoji` or both, and a `style`: `primary` (default), `secondary`,
  *   `success` or `danger`. A button with a `url` instead of an `id` opens the link and needs no
- *   handler. `disabled: true` greys a button out.
+ *   handler. `disabled: true` greys a button out. `c.deferUpdate(work)` keeps the message as it is
+ *   and edits it with what `work` returns, for a click that takes longer than 3 seconds.
  * @param config.selects The select menus the bot answers, made with `select()`.
  * @returns The Worker handler. Export it as the default export of your Worker. Pass it to
  *   `gateway({ bot })` to answer interactions that arrive over the gateway too.
@@ -116,10 +117,20 @@ export function bot(config: BotConfig): Bot {
     ctx: Pick<ExecutionContext, 'waitUntil'>,
   ): Promise<Response> => {
     if (interaction.type === MESSAGE_COMPONENT && interaction.data.component_type !== BUTTON) {
-      return answerSelect(interaction as APIMessageComponentSelectMenuInteraction, selects);
+      return answerSelect(
+        interaction as APIMessageComponentSelectMenuInteraction,
+        selects,
+        ctx,
+        config.onError,
+      );
     }
     if (interaction.type === MESSAGE_COMPONENT && interaction.data.component_type === BUTTON) {
-      return answerButton(interaction as APIMessageComponentButtonInteraction, config.buttons);
+      return answerButton(
+        interaction as APIMessageComponentButtonInteraction,
+        config.buttons,
+        ctx,
+        config.onError,
+      );
     }
     if (interaction.type === MODAL_SUBMIT) return answerModal(interaction, modals);
     if (interaction.type === AUTOCOMPLETE) {

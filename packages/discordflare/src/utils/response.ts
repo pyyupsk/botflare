@@ -9,6 +9,8 @@ export const DEFERRED_EPHEMERAL: Schemas['CreateMessageInteractionCallbackReques
   data: { flags: 64 },
 };
 
+export const DEFERRED_UPDATE: Schemas['UpdateMessageInteractionCallbackRequest'] = { type: 6 };
+
 export function replyResponse(content: string, options?: ReplyOptions): Response {
   const response: Schemas['CreateMessageInteractionCallbackRequest'] = {
     type: 4,
