@@ -19,7 +19,7 @@ import {
   type Options,
   optionValues,
 } from '#utils/command';
-import { type Button, message, type ReplyOptions } from '#utils/message';
+import { message, type ReplyOptions } from '#utils/message';
 import { type Fields, type Modal, fieldValues, modalData } from '#utils/modal';
 import { verify } from '#utils/verify';
 
@@ -72,8 +72,9 @@ export function option<const T extends keyof OptionValue, const R extends boolea
  * @param config.options The options, keyed by name, made with {@link option}.
  * @param run Answers the command. It gets the interaction, the typed option values, `reply`
  *   for an answer within 3 seconds and `defer` for work that takes longer. Pass
- *   `{ ephemeral: true }` to either so only the user who ran the command sees the answer. The work of
- *   `defer` returns the text, or `{ content, buttons }` to add buttons.
+ *   `{ ephemeral: true }` to either so only the user who ran the command sees the answer, `buttons`
+ *   to add buttons and `embeds` to add embeds. The work of `defer` returns the text, or
+ *   `{ content, buttons, embeds }`.
  * @returns The command, for the `commands` of {@link bot}.
  * @example
  * const greet = command(
@@ -132,7 +133,7 @@ function reply(content: string, options?: ReplyOptions): Response {
   return Response.json(response);
 }
 
-function update(content: string, options?: { buttons?: Button[] }): Response {
+function update(content: string, options?: Omit<ReplyOptions, 'ephemeral'>): Response {
   const response: Schemas['UpdateMessageInteractionCallbackRequest'] = {
     type: 7,
     data: message(content, options),
@@ -284,7 +285,7 @@ export function bot(config: BotConfig): Bot {
           edit =
             typeof done === 'string'
               ? message(done)
-              : message(done.content, { buttons: done.buttons });
+              : message(done.content, { buttons: done.buttons, embeds: done.embeds });
         } catch (error) {
           await config.onError?.(error, where);
         }

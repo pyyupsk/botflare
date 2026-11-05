@@ -278,6 +278,34 @@ it('defers a slow command and edits the answer in when the work is done', async 
   );
 });
 
+it('edits embeds into a deferred answer', async () => {
+  const fetch = vi.fn(async () => Response.json({}));
+  vi.stubGlobal('fetch', fetch);
+  const report = bot({
+    commands: [
+      command({ name: 'report', description: 'Reports late' }, (c) =>
+        c.defer(async () => ({
+          content: 'Report',
+          embeds: [{ title: 'Uptime', description: '99%' }],
+        })),
+      ),
+    ],
+  });
+
+  await report.fetch(await signed(slash('report', [])), env, ctx);
+  await waitOnExecutionContext(ctx);
+
+  expect(fetch).toHaveBeenCalledWith(
+    expect.stringContaining('/messages/@original'),
+    expect.objectContaining({
+      body: JSON.stringify({
+        content: 'Report',
+        embeds: [{ title: 'Uptime', description: '99%' }],
+      }),
+    }),
+  );
+});
+
 it('edits buttons into a deferred answer', async () => {
   const fetch = vi.fn(async () => Response.json({}));
   vi.stubGlobal('fetch', fetch);

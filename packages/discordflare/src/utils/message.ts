@@ -4,7 +4,11 @@ import type { Schemas } from '#lib/routes';
 
 export type Button = { id: string; label: string };
 
-export type ReplyOptions = { buttons?: Button[]; ephemeral?: boolean };
+export type ReplyOptions = {
+  buttons?: Button[];
+  embeds?: Schemas['RichEmbed'][];
+  ephemeral?: boolean;
+};
 
 const PER_ROW = 5;
 const EPHEMERAL: MessageFlags.Ephemeral = 64;
@@ -15,6 +19,7 @@ export function message(
 ): Schemas['IncomingWebhookInteractionRequest'] {
   const data: Schemas['IncomingWebhookInteractionRequest'] = { content };
   if (options.ephemeral) data.flags = EPHEMERAL;
+  if (options.embeds) data.embeds = options.embeds;
   if (!options.buttons) return data;
 
   const rows: Schemas['ActionRowComponentForMessageRequest'][] = [];

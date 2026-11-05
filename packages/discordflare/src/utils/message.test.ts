@@ -24,3 +24,9 @@ it('clears the buttons when given an empty list', () => {
 it('marks an ephemeral message with the ephemeral flag', () => {
   expect(message('secret', { ephemeral: true })).toEqual({ content: 'secret', flags: 64 });
 });
+
+it('adds embeds next to the text', () => {
+  const embeds = [{ title: 'Status', color: 0x57f287, fields: [{ name: 'Ping', value: '12 ms' }] }];
+
+  expect(message('', { embeds })).toEqual({ content: '', embeds });
+});
