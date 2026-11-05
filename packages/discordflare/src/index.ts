@@ -91,7 +91,10 @@ export function option<
 }
 
 /**
- * Declares a slash command and the handler that answers it.
+ * Declares a slash command and the handler that answers it. To split a command into subcommands,
+ * such as `/config get` and `/config set`, pass `subcommands` instead of `options` and `run`: a list
+ * of commands made with `command()`. A subcommand that has `subcommands` of its own becomes a group,
+ * such as `/config role add`. Discord allows one group level only.
  *
  * @param config What Discord shows for the command.
  * @param config.name The name the user types after `/`.
@@ -112,13 +115,20 @@ export function option<
 export function command<const O extends Options = never>(
   config: { name: string; description: string; options?: O },
   run: (c: Context<O>) => Response | Promise<Response>,
-): Command<O> {
-  return {
-    name: config.name,
-    description: config.description,
-    options: config.options ?? ({} as O),
-    run,
-  };
+): Command<O>;
+export function command(config: {
+  name: string;
+  description: string;
+  subcommands: Command[];
+}): Command;
+export function command(
+  config: { name: string; description: string; options?: Options; subcommands?: Command[] },
+  run?: (c: Context<Options>) => Response | Promise<Response>,
+): Command {
+  const { name, description, subcommands } = config;
+  if (subcommands) return { name, description, subcommands };
+
+  return { name, description, options: config.options ?? {}, run: run as NonNullable<typeof run> };
 }
 
 /**
@@ -299,13 +309,21 @@ export function bot(config: BotConfig): Bot {
       return new Response(null, { status: 400 });
     }
 
-    const found = commands.get(interaction.data.name);
+    const path = [interaction.data.name];
+    let found = commands.get(interaction.data.name);
+    let given = interaction.data.options ?? [];
+    while (found && 'subcommands' in found) {
+      const picked = given[0];
+      found = found.subcommands.find((child) => child.name === picked?.name);
+      path.push(picked?.name ?? '');
+      given = picked && 'options' in picked ? (picked.options ?? []) : [];
+    }
     if (!found) return new Response(null, { status: 404 });
 
-    const values = optionValues(interaction.data);
+    const values = optionValues(given, interaction.data.resolved);
+    const where = `/${path.join(' ')}`;
 
     const defer: Context<Options>['defer'] = (work, options) => {
-      const where = `/${interaction.data.name}`;
       const finish = async (): Promise<void> => {
         let edit = message('Something went wrong.');
         try {

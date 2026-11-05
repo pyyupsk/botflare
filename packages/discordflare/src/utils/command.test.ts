@@ -87,3 +87,49 @@ it('narrows a value to its choices and allows each limit only on its own type', 
   // @ts-expect-error not a channel type
   option('channel', { description: 'x', channelTypes: ['dm'] });
 });
+
+it('sends subcommands as type 1 and groups as type 2', () => {
+  const config = command({
+    name: 'config',
+    description: 'Settings',
+    subcommands: [
+      command({ name: 'get', description: 'Show' }, (c) => c.reply('ok')),
+      command({
+        name: 'role',
+        description: 'Roles',
+        subcommands: [
+          command(
+            {
+              name: 'add',
+              description: 'Add',
+              options: { who: option('user', { description: 'Who' }) },
+            },
+            (c) => c.reply('ok'),
+          ),
+        ],
+      }),
+    ],
+  });
+
+  expect(payload(config)).toEqual({
+    type: 1,
+    name: 'config',
+    description: 'Settings',
+    options: [
+      { type: 1, name: 'get', description: 'Show', options: [] },
+      {
+        type: 2,
+        name: 'role',
+        description: 'Roles',
+        options: [
+          {
+            type: 1,
+            name: 'add',
+            description: 'Add',
+            options: [{ name: 'who', description: 'Who', type: 6, required: false }],
+          },
+        ],
+      },
+    ],
+  });
+});

@@ -3,7 +3,12 @@ import {
   createScheduledController,
   waitOnExecutionContext,
 } from 'cloudflare:test';
-import type { APIInteractionDataResolvedChannel, APIRole, APIUser } from 'discord-api-types/v10';
+import type {
+  APIInteraction,
+  APIInteractionDataResolvedChannel,
+  APIRole,
+  APIUser,
+} from 'discord-api-types/v10';
 import { afterEach, beforeAll, expect, expectTypeOf, it, vi } from 'vitest';
 
 import { bot, command, modal, option, rest } from './index';
@@ -646,4 +651,61 @@ it('types the routes, methods and arguments of the REST API', () => {
     // @ts-expect-error content must be a string
     body: { content: 1 },
   });
+});
+
+it('answers a subcommand inside a group with its own options', async () => {
+  const onError = vi.fn();
+  const settings = bot({
+    onError,
+    commands: [
+      command({
+        name: 'config',
+        description: 'Settings',
+        subcommands: [
+          command({ name: 'get', description: 'Show' }, (c) => c.reply('got')),
+          command({
+            name: 'role',
+            description: 'Roles',
+            subcommands: [
+              command(
+                {
+                  name: 'add',
+                  description: 'Add a role',
+                  options: { who: option('user', { description: 'Who', required: true }) },
+                },
+                (c) => c.reply(`added ${c.options.who.username}`),
+              ),
+            ],
+          }),
+        ],
+      }),
+    ],
+  });
+  const run = (options: unknown[]): Promise<Response> =>
+    settings.answer(
+      {
+        type: 2,
+        data: {
+          type: 1,
+          name: 'config',
+          options,
+          resolved: { users: { '5': { username: 'yu' } } },
+        },
+      } as unknown as APIInteraction,
+      ctx,
+    );
+
+  const added = await run([
+    {
+      type: 2,
+      name: 'role',
+      options: [{ type: 1, name: 'add', options: [{ type: 6, name: 'who', value: '5' }] }],
+    },
+  ]);
+  const got = await run([{ type: 1, name: 'get', options: [] }]);
+  const missing = await run([{ type: 1, name: 'nothing', options: [] }]);
+
+  expect(await added.json()).toEqual({ type: 4, data: { content: 'added yu' } });
+  expect(await got.json()).toEqual({ type: 4, data: { content: 'got' } });
+  expect(missing.status).toBe(404);
 });

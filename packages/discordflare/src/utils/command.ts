@@ -1,4 +1,5 @@
 import type {
+  APIApplicationCommandInteractionDataOption,
   APIChatInputApplicationCommandInteraction,
   APIChatInputApplicationCommandInteractionData,
   APIInteractionDataResolvedChannel,
@@ -81,12 +82,14 @@ export type Context<O extends Options> = {
   modal: (modal: Modal) => Response;
 };
 
-export type Command<O extends Options = Options> = {
-  name: string;
-  description: string;
-  options: O;
-  run(c: Context<O>): Response | Promise<Response>;
-};
+export type Command<O extends Options = Options> =
+  | {
+      name: string;
+      description: string;
+      options: O;
+      run(c: Context<O>): Response | Promise<Response>;
+    }
+  | { name: string; description: string; subcommands: Command[] };
 
 const OPTION_TYPE: Record<keyof OptionValue, ApplicationCommandOptionType> = {
   string: 3,
@@ -101,11 +104,13 @@ const OPTION_TYPE: Record<keyof OptionValue, ApplicationCommandOptionType> = {
 const USER: ApplicationCommandOptionType.User = 6;
 const CHANNEL: ApplicationCommandOptionType.Channel = 7;
 const ROLE: ApplicationCommandOptionType.Role = 8;
+const SUBCOMMAND: ApplicationCommandOptionType.Subcommand = 1;
+const GROUP: ApplicationCommandOptionType.SubcommandGroup = 2;
 
 type CommandOption = NonNullable<Schemas['ApplicationCommandUpdateRequest']['options']>[number];
 
-export function payload(command: Command): Schemas['ApplicationCommandUpdateRequest'] {
-  const options = Object.entries(command.options)
+function optionsPayload(options: Options): CommandOption[] {
+  return Object.entries(options)
     .map(([name, o]) => {
       const built: Record<string, unknown> = {
         name,
@@ -126,22 +131,50 @@ export function payload(command: Command): Schemas['ApplicationCommandUpdateRequ
       return built as CommandOption;
     })
     .toSorted((a, b) => Number(b.required) - Number(a.required));
+}
 
-  return { type: 1, name: command.name, description: command.description, options };
+function childPayload(child: Command): CommandOption {
+  const { name, description } = child;
+  if (!('subcommands' in child)) {
+    return {
+      type: SUBCOMMAND,
+      name,
+      description,
+      options: optionsPayload(child.options),
+    } as CommandOption;
+  }
+
+  return {
+    type: GROUP,
+    name,
+    description,
+    options: child.subcommands.map(childPayload),
+  } as CommandOption;
+}
+
+export function payload(command: Command): Schemas['ApplicationCommandUpdateRequest'] {
+  const { name, description } = command;
+  const options =
+    'subcommands' in command
+      ? command.subcommands.map(childPayload)
+      : optionsPayload(command.options);
+
+  return { type: 1, name, description, options };
 }
 
 export function optionValues(
-  data: APIChatInputApplicationCommandInteractionData,
+  options: APIApplicationCommandInteractionDataOption[],
+  resolved: APIChatInputApplicationCommandInteractionData['resolved'],
 ): Record<string, OptionValue[keyof OptionValue] | undefined> {
   const values: Record<string, OptionValue[keyof OptionValue] | undefined> = {};
 
-  for (const o of data.options ?? []) {
+  for (const o of options) {
     if (!('value' in o)) continue;
 
     const id = String(o.value);
-    if (o.type === USER) values[o.name] = data.resolved?.users?.[id];
-    else if (o.type === CHANNEL) values[o.name] = data.resolved?.channels?.[id];
-    else if (o.type === ROLE) values[o.name] = data.resolved?.roles?.[id];
+    if (o.type === USER) values[o.name] = resolved?.users?.[id];
+    else if (o.type === CHANNEL) values[o.name] = resolved?.channels?.[id];
+    else if (o.type === ROLE) values[o.name] = resolved?.roles?.[id];
     else values[o.name] = o.value;
   }
 
