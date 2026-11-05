@@ -35,9 +35,9 @@
     },
     "packages/botflare": {
       "name": "botflare",
-      "version": "0.0.0",
+      "version": "0.1.0",
       "bin": {
-        "botflare": "./dist/cli.mjs",
+        "botflare": "dist/cli.mjs",
       },
       "dependencies": {
         "@clack/prompts": "^1.8.1",
