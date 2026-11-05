@@ -4,18 +4,26 @@ import type { Schemas } from '#lib/routes';
 
 export type Button = { id: string; label: string };
 
-export type MessageOptions = { buttons?: Button[]; embeds?: Schemas['RichEmbed'][] };
+export type MessageOptions = {
+  buttons?: Button[];
+  embeds?: Schemas['RichEmbed'][];
+  allowedMentions?: Schemas['MessageAllowedMentionsRequest'];
+};
 
 export type ReplyOptions = MessageOptions & { ephemeral?: boolean };
 
 const PER_ROW = 5;
 const EPHEMERAL: MessageFlags.Ephemeral = 64;
+const NO_PINGS: Schemas['MessageAllowedMentionsRequest'] = { parse: [] };
 
 export function message(
   content: string,
   options: ReplyOptions = {},
 ): Schemas['IncomingWebhookInteractionRequest'] {
-  const data: Schemas['IncomingWebhookInteractionRequest'] = { content };
+  const data: Schemas['IncomingWebhookInteractionRequest'] = {
+    content,
+    allowed_mentions: options.allowedMentions ?? NO_PINGS,
+  };
   if (options.ephemeral) data.flags = EPHEMERAL;
   if (options.embeds) data.embeds = options.embeds;
   if (!options.buttons) return data;

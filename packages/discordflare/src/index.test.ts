@@ -244,7 +244,10 @@ it('runs the matching command with its option values', async () => {
   ]);
   const res = await app.fetch(await signed(body), env, ctx);
 
-  expect(await res.json()).toEqual({ type: 4, data: { content: 'attack: 3' } });
+  expect(await res.json()).toEqual({
+    type: 4,
+    data: { content: 'attack: 3', allowed_mentions: { parse: [] } },
+  });
 });
 
 it('leaves an optional option undefined when the user skips it', async () => {
@@ -254,7 +257,10 @@ it('leaves an optional option undefined when the user skips it', async () => {
     ctx,
   );
 
-  expect(await res.json()).toEqual({ type: 4, data: { content: 'roll: 2' } });
+  expect(await res.json()).toEqual({
+    type: 4,
+    data: { content: 'roll: 2', allowed_mentions: { parse: [] } },
+  });
 });
 
 it('answers 404 for a command the bot does not know', async () => {
@@ -266,7 +272,10 @@ it('answers 404 for a command the bot does not know', async () => {
 it('runs a command that has no options', async () => {
   const res = await app.fetch(await signed(slash('hello', [])), env, ctx);
 
-  expect(await res.json()).toEqual({ type: 4, data: { content: 'hello' } });
+  expect(await res.json()).toEqual({
+    type: 4,
+    data: { content: 'hello', allowed_mentions: { parse: [] } },
+  });
 });
 
 it('defers a slow command and edits the answer in when the work is done', async () => {
@@ -279,7 +288,10 @@ it('defers a slow command and edits the answer in when the work is done', async 
   expect(await res.json()).toEqual({ type: 5 });
   expect(fetch).toHaveBeenCalledWith(
     'https://discord.com/api/v10/webhooks/7/interaction-token/messages/@original',
-    expect.objectContaining({ method: 'PATCH', body: JSON.stringify({ content: 'done' }) }),
+    expect.objectContaining({
+      method: 'PATCH',
+      body: JSON.stringify({ content: 'done', allowed_mentions: { parse: [] } }),
+    }),
   );
 });
 
@@ -305,6 +317,7 @@ it('edits embeds into a deferred answer', async () => {
     expect.objectContaining({
       body: JSON.stringify({
         content: 'Report',
+        allowed_mentions: { parse: [] },
         embeds: [{ title: 'Uptime', description: '99%' }],
       }),
     }),
@@ -330,6 +343,7 @@ it('edits buttons into a deferred answer', async () => {
     expect.objectContaining({
       body: JSON.stringify({
         content: 'Ready?',
+        allowed_mentions: { parse: [] },
         components: [
           { type: 1, components: [{ type: 2, style: 1, label: 'Yes', custom_id: 'yes' }] },
         ],
@@ -345,6 +359,7 @@ it('replies with buttons', async () => {
     type: 4,
     data: {
       content: 'Yes or no?',
+      allowed_mentions: { parse: [] },
       components: [{ type: 1, components: [{ custom_id: 'yes' }, { custom_id: 'no' }] }],
     },
   });
@@ -353,7 +368,10 @@ it('replies with buttons', async () => {
 it('runs the handler of the clicked button and updates the message', async () => {
   const res = await app.fetch(await signed(click('yes')), env, ctx);
 
-  expect(await res.json()).toEqual({ type: 7, data: { content: 'yu said yes', components: [] } });
+  expect(await res.json()).toEqual({
+    type: 7,
+    data: { content: 'yu said yes', allowed_mentions: { parse: [] }, components: [] },
+  });
 });
 
 it('answers 404 for a button without a handler', async () => {
@@ -374,7 +392,10 @@ it('opens a modal from a command and from a button', async () => {
 it('runs the modal handler with what the user typed', async () => {
   const res = await app.fetch(await signed(submit('feedback', 'ship it')), env, ctx);
 
-  expect(await res.json()).toEqual({ type: 4, data: { content: 'thanks: ship it' } });
+  expect(await res.json()).toEqual({
+    type: 4,
+    data: { content: 'thanks: ship it', allowed_mentions: { parse: [] } },
+  });
 });
 
 it('answers 404 for a modal the bot does not know', async () => {
@@ -397,7 +418,7 @@ it('runs the cron job for the trigger and posts to the channel with the bot toke
     expect.objectContaining({
       method: 'POST',
       headers: expect.objectContaining({ Authorization: 'Bot secret' }),
-      body: JSON.stringify({ content: 'good morning' }),
+      body: JSON.stringify({ content: 'good morning', allowed_mentions: { parse: [] } }),
     }),
   );
 });
@@ -425,6 +446,7 @@ it('posts embeds and buttons from a cron job', async () => {
     expect.objectContaining({
       body: JSON.stringify({
         content: '',
+        allowed_mentions: { parse: [] },
         embeds: [{ title: 'Daily report' }],
         components: [
           { type: 1, components: [{ type: 2, style: 1, label: 'More', custom_id: 'more' }] },
@@ -448,7 +470,10 @@ it("hands Discord's refusal back to the cron job as an error", async () => {
   expect(fetch).toHaveBeenLastCalledWith(
     'https://discord.com/api/v10/channels/42/messages',
     expect.objectContaining({
-      body: JSON.stringify({ content: 'failed: Discord answered 403: Missing Access' }),
+      body: JSON.stringify({
+        content: 'failed: Discord answered 403: Missing Access',
+        allowed_mentions: { parse: [] },
+      }),
     }),
   );
 });
@@ -470,7 +495,10 @@ it('answers an interaction handed over directly, as the gateway does', async () 
     ctx,
   );
 
-  expect(await res.json()).toEqual({ type: 4, data: { content: 'roll: 4' } });
+  expect(await res.json()).toEqual({
+    type: 4,
+    data: { content: 'roll: 4', allowed_mentions: { parse: [] } },
+  });
 });
 
 it('starts the gateway on every cron tick when the bot names its binding', async () => {
@@ -522,7 +550,9 @@ it('reports deferred work that fails and edits the answer so it does not stay on
   expect(onError).toHaveBeenCalledWith(new Error('boom'), '/broken');
   expect(fetch).toHaveBeenCalledWith(
     expect.stringContaining('/messages/@original'),
-    expect.objectContaining({ body: JSON.stringify({ content: 'Something went wrong.' }) }),
+    expect.objectContaining({
+      body: JSON.stringify({ content: 'Something went wrong.', allowed_mentions: { parse: [] } }),
+    }),
   );
 });
 
@@ -563,7 +593,10 @@ it('gives user, channel and role options as the objects Discord resolved', async
 
   const res = await app.fetch(await signed(body), env, ctx);
 
-  expect(await res.json()).toEqual({ type: 4, data: { content: 'yu in #general as member' } });
+  expect(await res.json()).toEqual({
+    type: 4,
+    data: { content: 'yu in #general as member', allowed_mentions: { parse: [] } },
+  });
 });
 
 it('runs the handler named before the colon and passes what follows as the value', async () => {
@@ -571,7 +604,11 @@ it('runs the handler named before the colon and passes what follows as the value
 
   expect(await res.json()).toMatchObject({
     type: 7,
-    data: { content: 'page 2', components: [{ components: [{ custom_id: 'page:3' }] }] },
+    data: {
+      content: 'page 2',
+      allowed_mentions: { parse: [] },
+      components: [{ components: [{ custom_id: 'page:3' }] }],
+    },
   });
 });
 
@@ -613,7 +650,10 @@ it('replies and defers so only the user who ran the command sees it', async () =
   const now = await quiet.fetch(await signed(slash('quiet', [])), env, ctx);
   const later = await quiet.fetch(await signed(slash('quietlater', [])), env, ctx);
 
-  expect(await now.json()).toEqual({ type: 4, data: { content: 'psst', flags: 64 } });
+  expect(await now.json()).toEqual({
+    type: 4,
+    data: { content: 'psst', allowed_mentions: { parse: [] }, flags: 64 },
+  });
   expect(await later.json()).toEqual({ type: 5, data: { flags: 64 } });
 });
 
@@ -705,8 +745,14 @@ it('answers a subcommand inside a group with its own options', async () => {
   const got = await run([{ type: 1, name: 'get', options: [] }]);
   const missing = await run([{ type: 1, name: 'nothing', options: [] }]);
 
-  expect(await added.json()).toEqual({ type: 4, data: { content: 'added yu' } });
-  expect(await got.json()).toEqual({ type: 4, data: { content: 'got' } });
+  expect(await added.json()).toEqual({
+    type: 4,
+    data: { content: 'added yu', allowed_mentions: { parse: [] } },
+  });
+  expect(await got.json()).toEqual({
+    type: 4,
+    data: { content: 'got', allowed_mentions: { parse: [] } },
+  });
   expect(missing.status).toBe(404);
 });
 

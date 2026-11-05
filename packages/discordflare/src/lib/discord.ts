@@ -58,7 +58,11 @@ export async function sendMessage(
 ): Promise<Error | null> {
   const [error] = await callDiscord(token, 'post', '/channels/{channel_id}/messages', {
     path: { channel_id: channelId },
-    body: message(content, { buttons: options.buttons, embeds: options.embeds }),
+    body: message(content, {
+      buttons: options.buttons,
+      embeds: options.embeds,
+      allowedMentions: options.allowedMentions,
+    }),
   });
 
   return error;

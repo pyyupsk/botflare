@@ -119,7 +119,8 @@ export function option<
  * @param run Answers the command. It gets the interaction, the typed option values, `reply`
  *   for an answer within 3 seconds and `defer` for work that takes longer. Pass
  *   `{ ephemeral: true }` to either so only the user who ran the command sees the answer, `buttons`
- *   to add buttons and `embeds` to add embeds. The work of `defer` returns the text, or
+ *   to add buttons and `embeds` to add embeds. Messages ping nobody, even for `@everyone` or `<@id>`
+ *   in the text. To ping, pass `allowedMentions`, such as `{ users: [id] }` or `{ parse: ['roles'] }`. The work of `defer` returns the text, or
  *   `{ content, buttons, embeds }`.
  * @returns The command, for the `commands` of {@link bot}.
  * @example
@@ -365,7 +366,11 @@ export function bot(config: BotConfig): Bot {
           edit =
             typeof done === 'string'
               ? message(done)
-              : message(done.content, { buttons: done.buttons, embeds: done.embeds });
+              : message(done.content, {
+                  buttons: done.buttons,
+                  embeds: done.embeds,
+                  allowedMentions: done.allowedMentions,
+                });
         } catch (error) {
           await config.onError?.(error, where);
         }
