@@ -9,6 +9,8 @@ import { createRest, type Rest } from '#lib/rest';
  * does not throw. When Discord answers 429, it waits for `retry_after` and tries again, up to
  * three tries in all.
  *
+ * A request that is not a GET takes `reason`, the text that shows in the audit log of the server.
+ *
  * @example
  * import { rest } from 'discordflare';
  *

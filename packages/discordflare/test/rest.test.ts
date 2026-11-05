@@ -55,3 +55,17 @@ it('takes files only on routes that take multipart', () => {
     files: [],
   });
 });
+
+it('takes a reason on writes only', () => {
+  void rest.put('/guilds/{guild_id}/bans/{user_id}', {
+    path: { guild_id: '1', user_id: '2' },
+    body: {},
+    reason: 'spam',
+  });
+
+  void rest.get('/guilds/{guild_id}/bans/{user_id}', {
+    path: { guild_id: '1', user_id: '2' },
+    // @ts-expect-error a GET writes no audit log
+    reason: 'x',
+  });
+});

@@ -4900,7 +4900,7 @@ export type Routes = {
   '/applications/@me': {
     get: { args: []; result: S['get_my_application_result'] };
     patch: {
-      args: [init: { body: S['update_my_application_body'] }];
+      args: [init: { body: S['update_my_application_body']; reason?: string }];
       result: S['update_my_application_result'];
     };
   };
@@ -4910,7 +4910,13 @@ export type Routes = {
       result: S['get_application_result'];
     };
     patch: {
-      args: [init: { path: { application_id: string }; body: S['update_application_body'] }];
+      args: [
+        init: {
+          path: { application_id: string };
+          body: S['update_application_body'];
+          reason?: string;
+        },
+      ];
       result: S['update_application_result'];
     };
   };
@@ -4922,7 +4928,7 @@ export type Routes = {
   };
   '/applications/{application_id}/attachment': {
     post: {
-      args: [init: { path: { application_id: string }; files?: Upload[] }];
+      args: [init: { path: { application_id: string }; files?: Upload[]; reason?: string }];
       result: S['upload_application_attachment_result'];
     };
   };
@@ -4935,13 +4941,21 @@ export type Routes = {
     };
     post: {
       args: [
-        init: { path: { application_id: string }; body: S['create_application_command_body'] },
+        init: {
+          path: { application_id: string };
+          body: S['create_application_command_body'];
+          reason?: string;
+        },
       ];
       result: S['create_application_command_result'];
     };
     put: {
       args: [
-        init: { path: { application_id: string }; body: S['bulk_set_application_commands_body'] },
+        init: {
+          path: { application_id: string };
+          body: S['bulk_set_application_commands_body'];
+          reason?: string;
+        },
       ];
       result: S['bulk_set_application_commands_result'];
     };
@@ -4956,12 +4970,13 @@ export type Routes = {
         init: {
           path: { application_id: string; command_id: string };
           body: S['update_application_command_body'];
+          reason?: string;
         },
       ];
       result: S['update_application_command_result'];
     };
     delete: {
-      args: [init: { path: { application_id: string; command_id: string } }];
+      args: [init: { path: { application_id: string; command_id: string }; reason?: string }];
       result: null;
     };
   };
@@ -4971,7 +4986,13 @@ export type Routes = {
       result: S['list_application_emojis_result'];
     };
     post: {
-      args: [init: { path: { application_id: string }; body: S['create_application_emoji_body'] }];
+      args: [
+        init: {
+          path: { application_id: string };
+          body: S['create_application_emoji_body'];
+          reason?: string;
+        },
+      ];
       result: S['create_application_emoji_result'];
     };
   };
@@ -4985,11 +5006,15 @@ export type Routes = {
         init: {
           path: { application_id: string; emoji_id: string };
           body: S['update_application_emoji_body'];
+          reason?: string;
         },
       ];
       result: S['update_application_emoji_result'];
     };
-    delete: { args: [init: { path: { application_id: string; emoji_id: string } }]; result: null };
+    delete: {
+      args: [init: { path: { application_id: string; emoji_id: string }; reason?: string }];
+      result: null;
+    };
   };
   '/applications/{application_id}/entitlements': {
     get: {
@@ -4997,7 +5022,13 @@ export type Routes = {
       result: S['get_entitlements_result'];
     };
     post: {
-      args: [init: { path: { application_id: string }; body: S['create_entitlement_body'] }];
+      args: [
+        init: {
+          path: { application_id: string };
+          body: S['create_entitlement_body'];
+          reason?: string;
+        },
+      ];
       result: S['create_entitlement_result'];
     };
   };
@@ -5007,13 +5038,13 @@ export type Routes = {
       result: S['get_entitlement_result'];
     };
     delete: {
-      args: [init: { path: { application_id: string; entitlement_id: string } }];
+      args: [init: { path: { application_id: string; entitlement_id: string }; reason?: string }];
       result: null;
     };
   };
   '/applications/{application_id}/entitlements/{entitlement_id}/consume': {
     post: {
-      args: [init: { path: { application_id: string; entitlement_id: string } }];
+      args: [init: { path: { application_id: string; entitlement_id: string }; reason?: string }];
       result: null;
     };
   };
@@ -5032,6 +5063,7 @@ export type Routes = {
         init: {
           path: { application_id: string; guild_id: string };
           body: S['create_guild_application_command_body'];
+          reason?: string;
         },
       ];
       result: S['create_guild_application_command_result'];
@@ -5041,6 +5073,7 @@ export type Routes = {
         init: {
           path: { application_id: string; guild_id: string };
           body: S['bulk_set_guild_application_commands_body'];
+          reason?: string;
         },
       ];
       result: S['bulk_set_guild_application_commands_result'];
@@ -5062,12 +5095,18 @@ export type Routes = {
         init: {
           path: { application_id: string; guild_id: string; command_id: string };
           body: S['update_guild_application_command_body'];
+          reason?: string;
         },
       ];
       result: S['update_guild_application_command_result'];
     };
     delete: {
-      args: [init: { path: { application_id: string; guild_id: string; command_id: string } }];
+      args: [
+        init: {
+          path: { application_id: string; guild_id: string; command_id: string };
+          reason?: string;
+        },
+      ];
       result: null;
     };
   };
@@ -5081,6 +5120,7 @@ export type Routes = {
         init: {
           path: { application_id: string; guild_id: string; command_id: string };
           body: S['set_guild_application_command_permissions_body'];
+          reason?: string;
         },
       ];
       result: S['set_guild_application_command_permissions_result'];
@@ -5096,6 +5136,7 @@ export type Routes = {
         init: {
           path: { application_id: string };
           body: S['update_application_role_connections_metadata_body'];
+          reason?: string;
         },
       ];
       result: S['update_application_role_connections_metadata_result'];
@@ -5104,14 +5145,21 @@ export type Routes = {
   '/channels/{channel_id}': {
     get: { args: [init: { path: { channel_id: string } }]; result: S['get_channel_result'] };
     patch: {
-      args: [init: { path: { channel_id: string }; body: S['update_channel_body'] }];
+      args: [
+        init: { path: { channel_id: string }; body: S['update_channel_body']; reason?: string },
+      ];
       result: S['update_channel_result'];
     };
-    delete: { args: [init: { path: { channel_id: string } }]; result: S['delete_channel_result'] };
+    delete: {
+      args: [init: { path: { channel_id: string }; reason?: string }];
+      result: S['delete_channel_result'];
+    };
   };
   '/channels/{channel_id}/followers': {
     post: {
-      args: [init: { path: { channel_id: string }; body: S['follow_channel_body'] }];
+      args: [
+        init: { path: { channel_id: string }; body: S['follow_channel_body']; reason?: string },
+      ];
       result: S['follow_channel_result'];
     };
   };
@@ -5126,6 +5174,7 @@ export type Routes = {
           path: { channel_id: string };
           body: S['create_channel_invite_body'];
           files?: Upload[];
+          reason?: string;
         },
       ];
       result: S['create_channel_invite_result'];
@@ -5138,14 +5187,25 @@ export type Routes = {
     };
     post: {
       args: [
-        init: { path: { channel_id: string }; body: S['create_message_body']; files?: Upload[] },
+        init: {
+          path: { channel_id: string };
+          body: S['create_message_body'];
+          files?: Upload[];
+          reason?: string;
+        },
       ];
       result: S['create_message_result'];
     };
   };
   '/channels/{channel_id}/messages/bulk-delete': {
     post: {
-      args: [init: { path: { channel_id: string }; body: S['bulk_delete_messages_body'] }];
+      args: [
+        init: {
+          path: { channel_id: string };
+          body: S['bulk_delete_messages_body'];
+          reason?: string;
+        },
+      ];
       result: null;
     };
   };
@@ -5156,8 +5216,14 @@ export type Routes = {
     };
   };
   '/channels/{channel_id}/messages/pins/{message_id}': {
-    put: { args: [init: { path: { channel_id: string; message_id: string } }]; result: null };
-    delete: { args: [init: { path: { channel_id: string; message_id: string } }]; result: null };
+    put: {
+      args: [init: { path: { channel_id: string; message_id: string }; reason?: string }];
+      result: null;
+    };
+    delete: {
+      args: [init: { path: { channel_id: string; message_id: string }; reason?: string }];
+      result: null;
+    };
   };
   '/channels/{channel_id}/messages/{message_id}': {
     get: {
@@ -5170,20 +5236,27 @@ export type Routes = {
           path: { channel_id: string; message_id: string };
           body: S['update_message_body'];
           files?: Upload[];
+          reason?: string;
         },
       ];
       result: S['update_message_result'];
     };
-    delete: { args: [init: { path: { channel_id: string; message_id: string } }]; result: null };
+    delete: {
+      args: [init: { path: { channel_id: string; message_id: string }; reason?: string }];
+      result: null;
+    };
   };
   '/channels/{channel_id}/messages/{message_id}/crosspost': {
     post: {
-      args: [init: { path: { channel_id: string; message_id: string } }];
+      args: [init: { path: { channel_id: string; message_id: string }; reason?: string }];
       result: S['crosspost_message_result'];
     };
   };
   '/channels/{channel_id}/messages/{message_id}/reactions': {
-    delete: { args: [init: { path: { channel_id: string; message_id: string } }]; result: null };
+    delete: {
+      args: [init: { path: { channel_id: string; message_id: string }; reason?: string }];
+      result: null;
+    };
   };
   '/channels/{channel_id}/messages/{message_id}/reactions/{emoji_name}': {
     get: {
@@ -5196,17 +5269,32 @@ export type Routes = {
       result: S['list_message_reactions_by_emoji_result'];
     };
     delete: {
-      args: [init: { path: { channel_id: string; message_id: string; emoji_name: string } }];
+      args: [
+        init: {
+          path: { channel_id: string; message_id: string; emoji_name: string };
+          reason?: string;
+        },
+      ];
       result: null;
     };
   };
   '/channels/{channel_id}/messages/{message_id}/reactions/{emoji_name}/@me': {
     put: {
-      args: [init: { path: { channel_id: string; message_id: string; emoji_name: string } }];
+      args: [
+        init: {
+          path: { channel_id: string; message_id: string; emoji_name: string };
+          reason?: string;
+        },
+      ];
       result: null;
     };
     delete: {
-      args: [init: { path: { channel_id: string; message_id: string; emoji_name: string } }];
+      args: [
+        init: {
+          path: { channel_id: string; message_id: string; emoji_name: string };
+          reason?: string;
+        },
+      ];
       result: null;
     };
   };
@@ -5215,6 +5303,7 @@ export type Routes = {
       args: [
         init: {
           path: { channel_id: string; message_id: string; emoji_name: string; user_id: string };
+          reason?: string;
         },
       ];
       result: null;
@@ -5226,6 +5315,7 @@ export type Routes = {
         init: {
           path: { channel_id: string; message_id: string };
           body: S['create_thread_from_message_body'];
+          reason?: string;
         },
       ];
       result: S['create_thread_from_message_result'];
@@ -5259,11 +5349,15 @@ export type Routes = {
         init: {
           path: { channel_id: string; overwrite_id: string };
           body: S['set_channel_permission_overwrite_body'];
+          reason?: string;
         },
       ];
       result: null;
     };
-    delete: { args: [init: { path: { channel_id: string; overwrite_id: string } }]; result: null };
+    delete: {
+      args: [init: { path: { channel_id: string; overwrite_id: string }; reason?: string }];
+      result: null;
+    };
   };
   '/channels/{channel_id}/pins': {
     get: {
@@ -5272,8 +5366,14 @@ export type Routes = {
     };
   };
   '/channels/{channel_id}/pins/{message_id}': {
-    put: { args: [init: { path: { channel_id: string; message_id: string } }]; result: null };
-    delete: { args: [init: { path: { channel_id: string; message_id: string } }]; result: null };
+    put: {
+      args: [init: { path: { channel_id: string; message_id: string }; reason?: string }];
+      result: null;
+    };
+    delete: {
+      args: [init: { path: { channel_id: string; message_id: string }; reason?: string }];
+      result: null;
+    };
   };
   '/channels/{channel_id}/polls/{message_id}/answers/{answer_id}': {
     get: {
@@ -5288,22 +5388,35 @@ export type Routes = {
   };
   '/channels/{channel_id}/polls/{message_id}/expire': {
     post: {
-      args: [init: { path: { channel_id: string; message_id: string } }];
+      args: [init: { path: { channel_id: string; message_id: string }; reason?: string }];
       result: S['poll_expire_result'];
     };
   };
   '/channels/{channel_id}/recipients/{user_id}': {
     put: {
       args: [
-        init: { path: { channel_id: string; user_id: string }; body: S['add_group_dm_user_body'] },
+        init: {
+          path: { channel_id: string; user_id: string };
+          body: S['add_group_dm_user_body'];
+          reason?: string;
+        },
       ];
       result: S['add_group_dm_user_result'];
     };
-    delete: { args: [init: { path: { channel_id: string; user_id: string } }]; result: null };
+    delete: {
+      args: [init: { path: { channel_id: string; user_id: string }; reason?: string }];
+      result: null;
+    };
   };
   '/channels/{channel_id}/send-soundboard-sound': {
     post: {
-      args: [init: { path: { channel_id: string }; body: S['send_soundboard_sound_body'] }];
+      args: [
+        init: {
+          path: { channel_id: string };
+          body: S['send_soundboard_sound_body'];
+          reason?: string;
+        },
+      ];
       result: null;
     };
   };
@@ -5314,8 +5427,8 @@ export type Routes = {
     };
   };
   '/channels/{channel_id}/thread-members/@me': {
-    put: { args: [init: { path: { channel_id: string } }]; result: null };
-    delete: { args: [init: { path: { channel_id: string } }]; result: null };
+    put: { args: [init: { path: { channel_id: string }; reason?: string }]; result: null };
+    delete: { args: [init: { path: { channel_id: string }; reason?: string }]; result: null };
   };
   '/channels/{channel_id}/thread-members/{user_id}': {
     get: {
@@ -5327,13 +5440,24 @@ export type Routes = {
       ];
       result: S['get_thread_member_result'];
     };
-    put: { args: [init: { path: { channel_id: string; user_id: string } }]; result: null };
-    delete: { args: [init: { path: { channel_id: string; user_id: string } }]; result: null };
+    put: {
+      args: [init: { path: { channel_id: string; user_id: string }; reason?: string }];
+      result: null;
+    };
+    delete: {
+      args: [init: { path: { channel_id: string; user_id: string }; reason?: string }];
+      result: null;
+    };
   };
   '/channels/{channel_id}/threads': {
     post: {
       args: [
-        init: { path: { channel_id: string }; body: S['create_thread_body']; files?: Upload[] },
+        init: {
+          path: { channel_id: string };
+          body: S['create_thread_body'];
+          files?: Upload[];
+          reason?: string;
+        },
       ];
       result: S['create_thread_result'];
     };
@@ -5362,7 +5486,7 @@ export type Routes = {
   };
   '/channels/{channel_id}/typing': {
     post: {
-      args: [init: { path: { channel_id: string } }];
+      args: [init: { path: { channel_id: string }; reason?: string }];
       result: S['trigger_typing_indicator_result'];
     };
   };
@@ -5376,7 +5500,13 @@ export type Routes = {
   };
   '/channels/{channel_id}/voice-status': {
     put: {
-      args: [init: { path: { channel_id: string }; body: S['update_voice_channel_status_body'] }];
+      args: [
+        init: {
+          path: { channel_id: string };
+          body: S['update_voice_channel_status_body'];
+          reason?: string;
+        },
+      ];
       result: null;
     };
   };
@@ -5386,7 +5516,9 @@ export type Routes = {
       result: S['list_channel_webhooks_result'];
     };
     post: {
-      args: [init: { path: { channel_id: string }; body: S['create_webhook_body'] }];
+      args: [
+        init: { path: { channel_id: string }; body: S['create_webhook_body']; reason?: string },
+      ];
       result: S['create_webhook_result'];
     };
   };
@@ -5401,7 +5533,7 @@ export type Routes = {
       result: S['get_guild_result'];
     };
     patch: {
-      args: [init: { path: { guild_id: string }; body: S['update_guild_body'] }];
+      args: [init: { path: { guild_id: string }; body: S['update_guild_body']; reason?: string }];
       result: S['update_guild_result'];
     };
   };
@@ -5417,7 +5549,13 @@ export type Routes = {
       result: S['list_auto_moderation_rules_result'];
     };
     post: {
-      args: [init: { path: { guild_id: string }; body: S['create_auto_moderation_rule_body'] }];
+      args: [
+        init: {
+          path: { guild_id: string };
+          body: S['create_auto_moderation_rule_body'];
+          reason?: string;
+        },
+      ];
       result: S['create_auto_moderation_rule_result'];
     };
   };
@@ -5431,11 +5569,15 @@ export type Routes = {
         init: {
           path: { guild_id: string; rule_id: string };
           body: S['update_auto_moderation_rule_body'];
+          reason?: string;
         },
       ];
       result: S['update_auto_moderation_rule_result'];
     };
-    delete: { args: [init: { path: { guild_id: string; rule_id: string } }]; result: null };
+    delete: {
+      args: [init: { path: { guild_id: string; rule_id: string }; reason?: string }];
+      result: null;
+    };
   };
   '/guilds/{guild_id}/bans': {
     get: {
@@ -5450,7 +5592,11 @@ export type Routes = {
     };
     put: {
       args: [
-        init: { path: { guild_id: string; user_id: string }; body: S['ban_user_from_guild_body'] },
+        init: {
+          path: { guild_id: string; user_id: string };
+          body: S['ban_user_from_guild_body'];
+          reason?: string;
+        },
       ];
       result: null;
     };
@@ -5459,6 +5605,7 @@ export type Routes = {
         init: {
           path: { guild_id: string; user_id: string };
           body: S['unban_user_from_guild_body'];
+          reason?: string;
         },
       ];
       result: null;
@@ -5466,25 +5613,41 @@ export type Routes = {
   };
   '/guilds/{guild_id}/bulk-ban': {
     post: {
-      args: [init: { path: { guild_id: string }; body: S['bulk_ban_users_from_guild_body'] }];
+      args: [
+        init: {
+          path: { guild_id: string };
+          body: S['bulk_ban_users_from_guild_body'];
+          reason?: string;
+        },
+      ];
       result: S['bulk_ban_users_from_guild_result'];
     };
   };
   '/guilds/{guild_id}/channels': {
     get: { args: [init: { path: { guild_id: string } }]; result: S['list_guild_channels_result'] };
     post: {
-      args: [init: { path: { guild_id: string }; body: S['create_guild_channel_body'] }];
+      args: [
+        init: { path: { guild_id: string }; body: S['create_guild_channel_body']; reason?: string },
+      ];
       result: S['create_guild_channel_result'];
     };
     patch: {
-      args: [init: { path: { guild_id: string }; body: S['bulk_update_guild_channels_body'] }];
+      args: [
+        init: {
+          path: { guild_id: string };
+          body: S['bulk_update_guild_channels_body'];
+          reason?: string;
+        },
+      ];
       result: null;
     };
   };
   '/guilds/{guild_id}/emojis': {
     get: { args: [init: { path: { guild_id: string } }]; result: S['list_guild_emojis_result'] };
     post: {
-      args: [init: { path: { guild_id: string }; body: S['create_guild_emoji_body'] }];
+      args: [
+        init: { path: { guild_id: string }; body: S['create_guild_emoji_body']; reason?: string },
+      ];
       result: S['create_guild_emoji_result'];
     };
   };
@@ -5495,15 +5658,28 @@ export type Routes = {
     };
     patch: {
       args: [
-        init: { path: { guild_id: string; emoji_id: string }; body: S['update_guild_emoji_body'] },
+        init: {
+          path: { guild_id: string; emoji_id: string };
+          body: S['update_guild_emoji_body'];
+          reason?: string;
+        },
       ];
       result: S['update_guild_emoji_result'];
     };
-    delete: { args: [init: { path: { guild_id: string; emoji_id: string } }]; result: null };
+    delete: {
+      args: [init: { path: { guild_id: string; emoji_id: string }; reason?: string }];
+      result: null;
+    };
   };
   '/guilds/{guild_id}/incident-actions': {
     put: {
-      args: [init: { path: { guild_id: string }; body: S['update_guild_incident_actions_body'] }];
+      args: [
+        init: {
+          path: { guild_id: string };
+          body: S['update_guild_incident_actions_body'];
+          reason?: string;
+        },
+      ];
       result: S['update_guild_incident_actions_result'];
     };
   };
@@ -5514,7 +5690,10 @@ export type Routes = {
     };
   };
   '/guilds/{guild_id}/integrations/{integration_id}': {
-    delete: { args: [init: { path: { guild_id: string; integration_id: string } }]; result: null };
+    delete: {
+      args: [init: { path: { guild_id: string; integration_id: string }; reason?: string }];
+      result: null;
+    };
   };
   '/guilds/{guild_id}/invites': {
     get: { args: [init: { path: { guild_id: string } }]; result: S['list_guild_invites_result'] };
@@ -5527,7 +5706,13 @@ export type Routes = {
   };
   '/guilds/{guild_id}/members/@me': {
     patch: {
-      args: [init: { path: { guild_id: string }; body: S['update_my_guild_member_body'] }];
+      args: [
+        init: {
+          path: { guild_id: string };
+          body: S['update_my_guild_member_body'];
+          reason?: string;
+        },
+      ];
       result: S['update_my_guild_member_result'];
     };
   };
@@ -5544,25 +5729,40 @@ export type Routes = {
     };
     put: {
       args: [
-        init: { path: { guild_id: string; user_id: string }; body: S['add_guild_member_body'] },
+        init: {
+          path: { guild_id: string; user_id: string };
+          body: S['add_guild_member_body'];
+          reason?: string;
+        },
       ];
       result: S['add_guild_member_result'];
     };
     patch: {
       args: [
-        init: { path: { guild_id: string; user_id: string }; body: S['update_guild_member_body'] },
+        init: {
+          path: { guild_id: string; user_id: string };
+          body: S['update_guild_member_body'];
+          reason?: string;
+        },
       ];
       result: S['update_guild_member_result'];
     };
-    delete: { args: [init: { path: { guild_id: string; user_id: string } }]; result: null };
+    delete: {
+      args: [init: { path: { guild_id: string; user_id: string }; reason?: string }];
+      result: null;
+    };
   };
   '/guilds/{guild_id}/members/{user_id}/roles/{role_id}': {
     put: {
-      args: [init: { path: { guild_id: string; user_id: string; role_id: string } }];
+      args: [
+        init: { path: { guild_id: string; user_id: string; role_id: string }; reason?: string },
+      ];
       result: null;
     };
     delete: {
-      args: [init: { path: { guild_id: string; user_id: string; role_id: string } }];
+      args: [
+        init: { path: { guild_id: string; user_id: string; role_id: string }; reason?: string },
+      ];
       result: null;
     };
   };
@@ -5584,7 +5784,13 @@ export type Routes = {
       result: S['get_guilds_onboarding_result'];
     };
     put: {
-      args: [init: { path: { guild_id: string }; body: S['put_guilds_onboarding_body'] }];
+      args: [
+        init: {
+          path: { guild_id: string };
+          body: S['put_guilds_onboarding_body'];
+          reason?: string;
+        },
+      ];
       result: S['put_guilds_onboarding_result'];
     };
   };
@@ -5609,7 +5815,7 @@ export type Routes = {
       result: S['preview_prune_guild_result'];
     };
     post: {
-      args: [init: { path: { guild_id: string }; body: S['prune_guild_body'] }];
+      args: [init: { path: { guild_id: string }; body: S['prune_guild_body']; reason?: string }];
       result: S['prune_guild_result'];
     };
   };
@@ -5631,6 +5837,7 @@ export type Routes = {
         init: {
           path: { guild_id: string; request_id: string };
           body: S['action_guild_join_request_body'];
+          reason?: string;
         },
       ];
       result: S['action_guild_join_request_result'];
@@ -5639,11 +5846,19 @@ export type Routes = {
   '/guilds/{guild_id}/roles': {
     get: { args: [init: { path: { guild_id: string } }]; result: S['list_guild_roles_result'] };
     post: {
-      args: [init: { path: { guild_id: string }; body: S['create_guild_role_body'] }];
+      args: [
+        init: { path: { guild_id: string }; body: S['create_guild_role_body']; reason?: string },
+      ];
       result: S['create_guild_role_result'];
     };
     patch: {
-      args: [init: { path: { guild_id: string }; body: S['bulk_update_guild_roles_body'] }];
+      args: [
+        init: {
+          path: { guild_id: string };
+          body: S['bulk_update_guild_roles_body'];
+          reason?: string;
+        },
+      ];
       result: S['bulk_update_guild_roles_result'];
     };
   };
@@ -5660,11 +5875,18 @@ export type Routes = {
     };
     patch: {
       args: [
-        init: { path: { guild_id: string; role_id: string }; body: S['update_guild_role_body'] },
+        init: {
+          path: { guild_id: string; role_id: string };
+          body: S['update_guild_role_body'];
+          reason?: string;
+        },
       ];
       result: S['update_guild_role_result'];
     };
-    delete: { args: [init: { path: { guild_id: string; role_id: string } }]; result: null };
+    delete: {
+      args: [init: { path: { guild_id: string; role_id: string }; reason?: string }];
+      result: null;
+    };
   };
   '/guilds/{guild_id}/scheduled-events': {
     get: {
@@ -5672,7 +5894,13 @@ export type Routes = {
       result: S['list_guild_scheduled_events_result'];
     };
     post: {
-      args: [init: { path: { guild_id: string }; body: S['create_guild_scheduled_event_body'] }];
+      args: [
+        init: {
+          path: { guild_id: string };
+          body: S['create_guild_scheduled_event_body'];
+          reason?: string;
+        },
+      ];
       result: S['create_guild_scheduled_event_result'];
     };
   };
@@ -5691,12 +5919,15 @@ export type Routes = {
         init: {
           path: { guild_id: string; guild_scheduled_event_id: string };
           body: S['update_guild_scheduled_event_body'];
+          reason?: string;
         },
       ];
       result: S['update_guild_scheduled_event_result'];
     };
     delete: {
-      args: [init: { path: { guild_id: string; guild_scheduled_event_id: string } }];
+      args: [
+        init: { path: { guild_id: string; guild_scheduled_event_id: string }; reason?: string },
+      ];
       result: null;
     };
   };
@@ -5706,6 +5937,7 @@ export type Routes = {
         init: {
           path: { guild_id: string; guild_scheduled_event_id: string };
           body: S['create_guild_scheduled_event_exception_body'];
+          reason?: string;
         },
       ];
       result: S['create_guild_scheduled_event_exception_result'];
@@ -5717,6 +5949,7 @@ export type Routes = {
         init: {
           path: { guild_id: string; guild_scheduled_event_id: string; exception_id: string };
           body: S['update_guild_scheduled_event_exception_body'];
+          reason?: string;
         },
       ];
       result: S['update_guild_scheduled_event_exception_result'];
@@ -5725,6 +5958,7 @@ export type Routes = {
       args: [
         init: {
           path: { guild_id: string; guild_scheduled_event_id: string; exception_id: string };
+          reason?: string;
         },
       ];
       result: null;
@@ -5773,7 +6007,13 @@ export type Routes = {
       result: S['list_guild_soundboard_sounds_result'];
     };
     post: {
-      args: [init: { path: { guild_id: string }; body: S['create_guild_soundboard_sound_body'] }];
+      args: [
+        init: {
+          path: { guild_id: string };
+          body: S['create_guild_soundboard_sound_body'];
+          reason?: string;
+        },
+      ];
       result: S['create_guild_soundboard_sound_result'];
     };
   };
@@ -5787,16 +6027,20 @@ export type Routes = {
         init: {
           path: { guild_id: string; sound_id: string };
           body: S['update_guild_soundboard_sound_body'];
+          reason?: string;
         },
       ];
       result: S['update_guild_soundboard_sound_result'];
     };
-    delete: { args: [init: { path: { guild_id: string; sound_id: string } }]; result: null };
+    delete: {
+      args: [init: { path: { guild_id: string; sound_id: string }; reason?: string }];
+      result: null;
+    };
   };
   '/guilds/{guild_id}/stickers': {
     get: { args: [init: { path: { guild_id: string } }]; result: S['list_guild_stickers_result'] };
     post: {
-      args: [init: { path: { guild_id: string }; files?: Upload[] }];
+      args: [init: { path: { guild_id: string }; files?: Upload[]; reason?: string }];
       result: S['create_guild_sticker_result'];
     };
   };
@@ -5810,32 +6054,46 @@ export type Routes = {
         init: {
           path: { guild_id: string; sticker_id: string };
           body: S['update_guild_sticker_body'];
+          reason?: string;
         },
       ];
       result: S['update_guild_sticker_result'];
     };
-    delete: { args: [init: { path: { guild_id: string; sticker_id: string } }]; result: null };
+    delete: {
+      args: [init: { path: { guild_id: string; sticker_id: string }; reason?: string }];
+      result: null;
+    };
   };
   '/guilds/{guild_id}/templates': {
     get: { args: [init: { path: { guild_id: string } }]; result: S['list_guild_templates_result'] };
     post: {
-      args: [init: { path: { guild_id: string }; body: S['create_guild_template_body'] }];
+      args: [
+        init: {
+          path: { guild_id: string };
+          body: S['create_guild_template_body'];
+          reason?: string;
+        },
+      ];
       result: S['create_guild_template_result'];
     };
   };
   '/guilds/{guild_id}/templates/{code}': {
     put: {
-      args: [init: { path: { guild_id: string; code: string } }];
+      args: [init: { path: { guild_id: string; code: string }; reason?: string }];
       result: S['sync_guild_template_result'];
     };
     patch: {
       args: [
-        init: { path: { guild_id: string; code: string }; body: S['update_guild_template_body'] },
+        init: {
+          path: { guild_id: string; code: string };
+          body: S['update_guild_template_body'];
+          reason?: string;
+        },
       ];
       result: S['update_guild_template_result'];
     };
     delete: {
-      args: [init: { path: { guild_id: string; code: string } }];
+      args: [init: { path: { guild_id: string; code: string }; reason?: string }];
       result: S['delete_guild_template_result'];
     };
   };
@@ -5851,7 +6109,13 @@ export type Routes = {
   '/guilds/{guild_id}/voice-states/@me': {
     get: { args: [init: { path: { guild_id: string } }]; result: S['get_self_voice_state_result'] };
     patch: {
-      args: [init: { path: { guild_id: string }; body: S['update_self_voice_state_body'] }];
+      args: [
+        init: {
+          path: { guild_id: string };
+          body: S['update_self_voice_state_body'];
+          reason?: string;
+        },
+      ];
       result: null;
     };
   };
@@ -5862,7 +6126,11 @@ export type Routes = {
     };
     patch: {
       args: [
-        init: { path: { guild_id: string; user_id: string }; body: S['update_voice_state_body'] },
+        init: {
+          path: { guild_id: string; user_id: string };
+          body: S['update_voice_state_body'];
+          reason?: string;
+        },
       ];
       result: null;
     };
@@ -5876,7 +6144,13 @@ export type Routes = {
       result: S['get_guild_welcome_screen_result'];
     };
     patch: {
-      args: [init: { path: { guild_id: string }; body: S['update_guild_welcome_screen_body'] }];
+      args: [
+        init: {
+          path: { guild_id: string };
+          body: S['update_guild_welcome_screen_body'];
+          reason?: string;
+        },
+      ];
       result: S['update_guild_welcome_screen_result'];
     };
   };
@@ -5886,7 +6160,13 @@ export type Routes = {
       result: S['get_guild_widget_settings_result'];
     };
     patch: {
-      args: [init: { path: { guild_id: string }; body: S['update_guild_widget_settings_body'] }];
+      args: [
+        init: {
+          path: { guild_id: string };
+          body: S['update_guild_widget_settings_body'];
+          reason?: string;
+        },
+      ];
       result: S['update_guild_widget_settings_result'];
     };
   };
@@ -5907,6 +6187,7 @@ export type Routes = {
           query?: S['create_interaction_response_query'];
           body: S['create_interaction_response_body'];
           files?: Upload[];
+          reason?: string;
         },
       ];
       result: S['create_interaction_response_result'];
@@ -5917,21 +6198,39 @@ export type Routes = {
       args: [init: { path: { code: string }; query?: S['invite_resolve_query'] }];
       result: S['invite_resolve_result'];
     };
-    delete: { args: [init: { path: { code: string } }]; result: S['invite_revoke_result'] };
+    delete: {
+      args: [init: { path: { code: string }; reason?: string }];
+      result: S['invite_revoke_result'];
+    };
   };
   '/invites/{code}/target-users': {
     get: { args: [init: { path: { code: string } }]; result: null };
-    put: { args: [init: { path: { code: string }; files?: Upload[] }]; result: null };
+    put: {
+      args: [init: { path: { code: string }; files?: Upload[]; reason?: string }];
+      result: null;
+    };
   };
   '/invites/{code}/target-users/bulk-add': {
     post: {
-      args: [init: { path: { code: string }; body: S['bulk_add_invite_target_users_body'] }];
+      args: [
+        init: {
+          path: { code: string };
+          body: S['bulk_add_invite_target_users_body'];
+          reason?: string;
+        },
+      ];
       result: null;
     };
   };
   '/invites/{code}/target-users/bulk-delete': {
     post: {
-      args: [init: { path: { code: string }; body: S['bulk_remove_invite_target_users_body'] }];
+      args: [
+        init: {
+          path: { code: string };
+          body: S['bulk_remove_invite_target_users_body'];
+          reason?: string;
+        },
+      ];
       result: null;
     };
   };
@@ -5942,57 +6241,85 @@ export type Routes = {
     };
   };
   '/invites/{code}/target-users/{user_id}': {
-    put: { args: [init: { path: { code: string; user_id: string } }]; result: null };
-    delete: { args: [init: { path: { code: string; user_id: string } }]; result: null };
+    put: {
+      args: [init: { path: { code: string; user_id: string }; reason?: string }];
+      result: null;
+    };
+    delete: {
+      args: [init: { path: { code: string; user_id: string }; reason?: string }];
+      result: null;
+    };
   };
   '/lobbies': {
-    post: { args: [init: { body: S['create_lobby_body'] }]; result: S['create_lobby_result'] };
+    post: {
+      args: [init: { body: S['create_lobby_body']; reason?: string }];
+      result: S['create_lobby_result'];
+    };
     put: {
-      args: [init: { body: S['create_or_join_lobby_body'] }];
+      args: [init: { body: S['create_or_join_lobby_body']; reason?: string }];
       result: S['create_or_join_lobby_result'];
     };
   };
   '/lobbies/{lobby_id}': {
     get: { args: [init: { path: { lobby_id: string } }]; result: S['get_lobby_result'] };
     patch: {
-      args: [init: { path: { lobby_id: string }; body: S['edit_lobby_body'] }];
+      args: [init: { path: { lobby_id: string }; body: S['edit_lobby_body']; reason?: string }];
       result: S['edit_lobby_result'];
     };
-    delete: { args: [init: { path: { lobby_id: string } }]; result: null };
+    delete: { args: [init: { path: { lobby_id: string }; reason?: string }]; result: null };
   };
   '/lobbies/{lobby_id}/channel-linking': {
     patch: {
-      args: [init: { path: { lobby_id: string }; body: S['edit_lobby_channel_link_body'] }];
+      args: [
+        init: {
+          path: { lobby_id: string };
+          body: S['edit_lobby_channel_link_body'];
+          reason?: string;
+        },
+      ];
       result: S['edit_lobby_channel_link_result'];
     };
   };
   '/lobbies/{lobby_id}/members/@me': {
-    delete: { args: [init: { path: { lobby_id: string } }]; result: null };
+    delete: { args: [init: { path: { lobby_id: string }; reason?: string }]; result: null };
   };
   '/lobbies/{lobby_id}/members/@me/invites': {
     post: {
-      args: [init: { path: { lobby_id: string } }];
+      args: [init: { path: { lobby_id: string }; reason?: string }];
       result: S['create_linked_lobby_guild_invite_for_self_result'];
     };
   };
   '/lobbies/{lobby_id}/members/bulk': {
     post: {
-      args: [init: { path: { lobby_id: string }; body: S['bulk_update_lobby_members_body'] }];
+      args: [
+        init: {
+          path: { lobby_id: string };
+          body: S['bulk_update_lobby_members_body'];
+          reason?: string;
+        },
+      ];
       result: S['bulk_update_lobby_members_result'];
     };
   };
   '/lobbies/{lobby_id}/members/{user_id}': {
     put: {
       args: [
-        init: { path: { lobby_id: string; user_id: string }; body: S['add_lobby_member_body'] },
+        init: {
+          path: { lobby_id: string; user_id: string };
+          body: S['add_lobby_member_body'];
+          reason?: string;
+        },
       ];
       result: S['add_lobby_member_result'];
     };
-    delete: { args: [init: { path: { lobby_id: string; user_id: string } }]; result: null };
+    delete: {
+      args: [init: { path: { lobby_id: string; user_id: string }; reason?: string }];
+      result: null;
+    };
   };
   '/lobbies/{lobby_id}/members/{user_id}/invites': {
     post: {
-      args: [init: { path: { lobby_id: string; user_id: string } }];
+      args: [init: { path: { lobby_id: string; user_id: string }; reason?: string }];
       result: S['create_linked_lobby_guild_invite_for_user_result'];
     };
   };
@@ -6007,6 +6334,7 @@ export type Routes = {
           path: { lobby_id: string };
           body: S['create_lobby_message_body'];
           files?: Upload[];
+          reason?: string;
         },
       ];
       result: S['create_lobby_message_result'];
@@ -6019,6 +6347,7 @@ export type Routes = {
           path: { lobby_id: string; message_id: string };
           body: S['update_lobby_message_external_moderation_metadata_body'];
           files?: Upload[];
+          reason?: string;
         },
       ];
       result: null;
@@ -6035,6 +6364,7 @@ export type Routes = {
           path: { user_id_1: string; user_id_2: string; message_id: string };
           body: S['update_user_message_external_moderation_metadata_body'];
           files?: Upload[];
+          reason?: string;
         },
       ];
       result: null;
@@ -6042,25 +6372,27 @@ export type Routes = {
   };
   '/partner-sdk/provisional-accounts/unmerge': {
     post: {
-      args: [init: { body: S['partner_sdk_unmerge_provisional_account_body'] }];
+      args: [init: { body: S['partner_sdk_unmerge_provisional_account_body']; reason?: string }];
       result: null;
     };
   };
   '/partner-sdk/provisional-accounts/unmerge/bot': {
     post: {
-      args: [init: { body: S['bot_partner_sdk_unmerge_provisional_account_body'] }];
+      args: [
+        init: { body: S['bot_partner_sdk_unmerge_provisional_account_body']; reason?: string },
+      ];
       result: null;
     };
   };
   '/partner-sdk/token': {
     post: {
-      args: [init: { body: S['partner_sdk_token_body'] }];
+      args: [init: { body: S['partner_sdk_token_body']; reason?: string }];
       result: S['partner_sdk_token_result'];
     };
   };
   '/partner-sdk/token/bot': {
     post: {
-      args: [init: { body: S['bot_partner_sdk_token_body'] }];
+      args: [init: { body: S['bot_partner_sdk_token_body']; reason?: string }];
       result: S['bot_partner_sdk_token_result'];
     };
   };
@@ -6086,17 +6418,23 @@ export type Routes = {
   };
   '/stage-instances': {
     post: {
-      args: [init: { body: S['create_stage_instance_body'] }];
+      args: [init: { body: S['create_stage_instance_body']; reason?: string }];
       result: S['create_stage_instance_result'];
     };
   };
   '/stage-instances/{channel_id}': {
     get: { args: [init: { path: { channel_id: string } }]; result: S['get_stage_instance_result'] };
     patch: {
-      args: [init: { path: { channel_id: string }; body: S['update_stage_instance_body'] }];
+      args: [
+        init: {
+          path: { channel_id: string };
+          body: S['update_stage_instance_body'];
+          reason?: string;
+        },
+      ];
       result: S['update_stage_instance_result'];
     };
-    delete: { args: [init: { path: { channel_id: string } }]; result: null };
+    delete: { args: [init: { path: { channel_id: string }; reason?: string }]; result: null };
   };
   '/sticker-packs': { get: { args: []; result: S['list_sticker_packs_result'] } };
   '/sticker-packs/{pack_id}': {
@@ -6107,7 +6445,10 @@ export type Routes = {
   };
   '/users/@me': {
     get: { args: []; result: S['get_my_user_result'] };
-    patch: { args: [init: { body: S['update_my_user_body'] }]; result: S['update_my_user_result'] };
+    patch: {
+      args: [init: { body: S['update_my_user_body']; reason?: string }];
+      result: S['update_my_user_result'];
+    };
   };
   '/users/@me/applications/{application_id}/entitlements': {
     get: {
@@ -6130,14 +6471,18 @@ export type Routes = {
         init: {
           path: { application_id: string };
           body: S['update_application_user_role_connection_body'];
+          reason?: string;
         },
       ];
       result: S['update_application_user_role_connection_result'];
     };
-    delete: { args: [init: { path: { application_id: string } }]; result: null };
+    delete: { args: [init: { path: { application_id: string }; reason?: string }]; result: null };
   };
   '/users/@me/channels': {
-    post: { args: [init: { body: S['create_dm_body'] }]; result: S['create_dm_result'] };
+    post: {
+      args: [init: { body: S['create_dm_body']; reason?: string }];
+      result: S['create_dm_result'];
+    };
   };
   '/users/@me/connections': { get: { args: []; result: S['list_my_connections_result'] } };
   '/users/@me/guilds': {
@@ -6147,7 +6492,7 @@ export type Routes = {
     };
   };
   '/users/@me/guilds/{guild_id}': {
-    delete: { args: [init: { path: { guild_id: string } }]; result: null };
+    delete: { args: [init: { path: { guild_id: string }; reason?: string }]; result: null };
   };
   '/users/@me/guilds/{guild_id}/member': {
     get: { args: [init: { path: { guild_id: string } }]; result: S['get_my_guild_member_result'] };
@@ -6159,10 +6504,12 @@ export type Routes = {
   '/webhooks/{webhook_id}': {
     get: { args: [init: { path: { webhook_id: string } }]; result: S['get_webhook_result'] };
     patch: {
-      args: [init: { path: { webhook_id: string }; body: S['update_webhook_body'] }];
+      args: [
+        init: { path: { webhook_id: string }; body: S['update_webhook_body']; reason?: string },
+      ];
       result: S['update_webhook_result'];
     };
-    delete: { args: [init: { path: { webhook_id: string } }]; result: null };
+    delete: { args: [init: { path: { webhook_id: string }; reason?: string }]; result: null };
   };
   '/webhooks/{webhook_id}/{webhook_token}': {
     get: {
@@ -6176,6 +6523,7 @@ export type Routes = {
           query?: S['execute_webhook_query'];
           body: S['execute_webhook_body'];
           files?: Upload[];
+          reason?: string;
         },
       ];
       result: S['execute_webhook_result'];
@@ -6185,11 +6533,15 @@ export type Routes = {
         init: {
           path: { webhook_id: string; webhook_token: string };
           body: S['update_webhook_by_token_body'];
+          reason?: string;
         },
       ];
       result: S['update_webhook_by_token_result'];
     };
-    delete: { args: [init: { path: { webhook_id: string; webhook_token: string } }]; result: null };
+    delete: {
+      args: [init: { path: { webhook_id: string; webhook_token: string }; reason?: string }];
+      result: null;
+    };
   };
   '/webhooks/{webhook_id}/{webhook_token}/github': {
     post: {
@@ -6198,6 +6550,7 @@ export type Routes = {
           path: { webhook_id: string; webhook_token: string };
           query?: S['execute_github_compatible_webhook_query'];
           body: S['execute_github_compatible_webhook_body'];
+          reason?: string;
         },
       ];
       result: null;
@@ -6220,6 +6573,7 @@ export type Routes = {
           query?: S['update_original_webhook_message_query'];
           body: S['update_original_webhook_message_body'];
           files?: Upload[];
+          reason?: string;
         },
       ];
       result: S['update_original_webhook_message_result'];
@@ -6229,6 +6583,7 @@ export type Routes = {
         init: {
           path: { webhook_id: string; webhook_token: string };
           query?: S['delete_original_webhook_message_query'];
+          reason?: string;
         },
       ];
       result: null;
@@ -6251,6 +6606,7 @@ export type Routes = {
           query?: S['update_webhook_message_query'];
           body: S['update_webhook_message_body'];
           files?: Upload[];
+          reason?: string;
         },
       ];
       result: S['update_webhook_message_result'];
@@ -6260,6 +6616,7 @@ export type Routes = {
         init: {
           path: { webhook_id: string; webhook_token: string; message_id: string };
           query?: S['delete_webhook_message_query'];
+          reason?: string;
         },
       ];
       result: null;
@@ -6273,6 +6630,7 @@ export type Routes = {
           query?: S['execute_slack_compatible_webhook_query'];
           body: S['execute_slack_compatible_webhook_body'];
           files?: Upload[];
+          reason?: string;
         },
       ];
       result: S['execute_slack_compatible_webhook_result'];

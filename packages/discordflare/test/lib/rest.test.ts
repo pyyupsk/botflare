@@ -72,3 +72,23 @@ it('gives null for 204 No Content', async () => {
 
   expect(result).toEqual([null, null]);
 });
+
+it('sends a reason for the audit log, encoded', async () => {
+  const fetch = vi.fn(async () => new Response(null, { status: 204 }));
+  vi.stubGlobal('fetch', fetch);
+
+  await callDiscord('secret', 'delete', '/guilds/{guild_id}/members/{user_id}', {
+    path: { guild_id: '1', user_id: '2' },
+    reason: 'spam, ลิงก์ซ้ำ',
+  });
+
+  expect(fetch).toHaveBeenCalledWith(
+    'https://discord.com/api/v10/guilds/1/members/2',
+    expect.objectContaining({
+      headers: {
+        Authorization: 'Bot secret',
+        'X-Audit-Log-Reason': encodeURIComponent('spam, ลิงก์ซ้ำ'),
+      },
+    }),
+  );
+});

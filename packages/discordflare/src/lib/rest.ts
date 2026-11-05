@@ -6,7 +6,13 @@ const TRIES = 3;
 
 type Method = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
-type Init = { path?: Record<string, string>; query?: object; body?: unknown; files?: Upload[] };
+type Init = {
+  path?: Record<string, string>;
+  query?: object;
+  body?: unknown;
+  files?: Upload[];
+  reason?: string;
+};
 
 type Route<M extends Method> = {
   [K in keyof Routes]: M extends keyof Routes[K] ? K : never;
@@ -70,6 +76,7 @@ async function request<T>(
 
   const headers: Record<string, string> = {};
   if (token) headers.Authorization = `Bot ${token}`;
+  if (init.reason) headers['X-Audit-Log-Reason'] = encodeURIComponent(init.reason);
   let body: string | FormData | undefined;
   if (init.files?.length) {
     body = formOf(init.body, init.files);

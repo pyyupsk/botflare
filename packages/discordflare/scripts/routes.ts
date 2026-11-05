@@ -123,6 +123,7 @@ for (const [path, item] of Object.entries(spec.paths)) {
     }
 
     if (op.requestBody?.content['multipart/form-data']) fields.push('files?: Upload[]');
+    if (method !== 'get') fields.push('reason?: string');
 
     if (result) schemas[`${id}_result`] = result;
 
