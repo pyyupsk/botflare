@@ -9,6 +9,7 @@ import type {
 } from 'discord-api-types/v10';
 
 import type { Schemas } from '#lib/routes';
+import { type Locales, localePayload } from '#utils/locale';
 import type { MessageOptions, ReplyOptions } from '#utils/message';
 import type { Modal } from '#utils/modal';
 import {
@@ -38,6 +39,7 @@ export type Context<O extends Options> = {
 };
 
 export type Access = {
+  locales?: Locales;
   permissions?: Permission[];
   contexts?: ('guild' | 'bot_dm' | 'private_channel')[];
   installs?: ('guild' | 'user')[];
@@ -47,7 +49,7 @@ const CONTEXT = { guild: 0, bot_dm: 1, private_channel: 2 } as const;
 const INSTALL = { guild: 0, user: 1 } as const;
 
 function accessPayload(access: Access): Partial<Schemas['ApplicationCommandUpdateRequest']> {
-  const fields: Partial<Schemas['ApplicationCommandUpdateRequest']> = {};
+  const fields: Partial<Schemas['ApplicationCommandUpdateRequest']> = localePayload(access.locales);
   if (access.permissions) fields.default_member_permissions = permissionBits(access.permissions);
   if (access.contexts) fields.contexts = access.contexts.map((c) => CONTEXT[c]);
   if (access.installs) fields.integration_types = access.installs.map((i) => INSTALL[i]);
@@ -92,6 +94,7 @@ function childPayload(child: Command): CommandOption {
       type: SUBCOMMAND,
       name,
       description,
+      ...localePayload(child.locales),
       options: optionsPayload(child.options),
     } as CommandOption;
   }
@@ -100,6 +103,7 @@ function childPayload(child: Command): CommandOption {
     type: GROUP,
     name,
     description,
+    ...localePayload(child.locales),
     options: child.subcommands.map(childPayload),
   } as CommandOption;
 }
@@ -109,6 +113,7 @@ export function payload(
 ): Schemas['ApplicationCommandUpdateRequest'] {
   const access = accessPayload(command);
   if ('menu' in command) {
+    delete access.description_localizations;
     return { type: command.menu === 'user' ? 2 : 3, name: command.name, ...access };
   }
 

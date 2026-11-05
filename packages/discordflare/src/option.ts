@@ -1,3 +1,4 @@
+import type { Locales } from '#utils/locale';
 import type {
   AutocompleteContext,
   ChannelType,
@@ -39,6 +40,7 @@ type Choice<T extends keyof OptionValue> = T extends 'string'
  * @param config How Discord shows the option.
  * @param config.description The text Discord shows under the option name.
  * @param config.required Whether the user must fill it in. Defaults to `false`.
+ * @param config.locales The name and description in other languages, keyed by Discord locale.
  * @returns The option, for the `options` of {@link command}.
  * @example
  * option('integer', { description: 'How many dice', required: true, min: 1, max: 6 });
@@ -50,7 +52,12 @@ export function option<
   const C extends Record<string, Choice<T>> = never,
 >(
   type: T,
-  config: { description: string; required?: R; choices?: C } & OptionLimits<T> & {
+  config: {
+    description: string;
+    required?: R;
+    choices?: C;
+    locales?: Locales;
+  } & OptionLimits<T> & {
       autocomplete?: [Choice<T>] extends [never]
         ? never
         : [C] extends [never]

@@ -1,3 +1,5 @@
+import type { Locale } from 'discord-api-types/v10';
+
 import type { Access, ContextMenu, MenuContext, MenuType } from '#utils/command';
 
 /**
@@ -11,6 +13,7 @@ import type { Access, ContextMenu, MenuContext, MenuType } from '#utils/command'
  * @param config.permissions Who sees the item by default, as in {@link command}.
  * @param config.contexts Where the item shows, as in {@link command}.
  * @param config.installs How the app must be installed for the item, as in {@link command}.
+ * @param config.locales The name in other languages, keyed by Discord locale.
  * @param run Answers the click, with `reply`, `defer` and `modal` as in a slash command.
  * @returns The context menu command, for the `commands` of {@link bot}.
  * @example
@@ -18,7 +21,10 @@ import type { Access, ContextMenu, MenuContext, MenuType } from '#utils/command'
  */
 export function contextMenu<const T extends MenuType>(
   menu: T,
-  config: { name: string } & Access,
+  config: { name: string; locales?: Partial<Record<`${Locale}`, { name: string }>> } & Omit<
+    Access,
+    'locales'
+  >,
   run: (c: MenuContext<T>) => Response | Promise<Response>,
 ): ContextMenu<T> {
   return { ...config, menu, run };

@@ -9,6 +9,7 @@ import type {
 } from 'discord-api-types/v10';
 
 import type { Schemas } from '#lib/routes';
+import { type Locales, localePayload } from '#utils/locale';
 
 export type OptionValue = {
   string: string;
@@ -59,6 +60,7 @@ export type Option<
   minLength?: number;
   maxLength?: number;
   channelTypes?: ChannelType[];
+  locales?: Locales;
   autocomplete?: (c: AutocompleteContext) => Suggestion<V>[] | Promise<Suggestion<V>[]>;
 };
 
@@ -108,6 +110,7 @@ export function optionsPayload(options: Options): CommandOption[] {
       if (o.maxLength !== undefined) built.max_length = o.maxLength;
       if (o.channelTypes) built.channel_types = o.channelTypes.map((t) => CHANNEL_TYPES[t]);
       if (o.autocomplete) built.autocomplete = true;
+      Object.assign(built, localePayload(o.locales));
 
       return built as CommandOption;
     })

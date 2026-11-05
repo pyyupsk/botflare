@@ -101,3 +101,39 @@ it('sends who sees a command, where it shows and how the app is installed', () =
   });
   expect(payload(adminsOnly)).toEqual({ type: 2, name: 'Warn', default_member_permissions: 0 });
 });
+
+it('sends names and descriptions in other languages', () => {
+  const roll = command(
+    {
+      name: 'roll',
+      description: 'Roll dice',
+      locales: { th: { name: 'ทอย', description: 'ทอยลูกเต๋า' }, ja: { name: 'サイコロ' } },
+      options: {
+        dice: option('integer', {
+          description: 'How many',
+          locales: { th: { description: 'กี่ลูก' } },
+        }),
+      },
+    },
+    (c) => c.reply('ok'),
+  );
+  const menu = contextMenu('user', { name: 'Wave', locales: { th: { name: 'โบกมือ' } } }, (c) =>
+    c.reply('ok'),
+  );
+
+  expect(payload(roll)).toMatchObject({
+    name_localizations: { th: 'ทอย', ja: 'サイコロ' },
+    description_localizations: { th: 'ทอยลูกเต๋า' },
+    options: [{ name: 'dice', description_localizations: { th: 'กี่ลูก' } }],
+  });
+  expect(payload(menu)).toEqual({ type: 2, name: 'Wave', name_localizations: { th: 'โบกมือ' } });
+
+  // @ts-expect-error not a Discord locale
+  command({ name: 'x', description: 'x', locales: { klingon: { name: 'x' } } }, (c) =>
+    c.reply('x'),
+  );
+  // @ts-expect-error a context menu has no description
+  contextMenu('user', { name: 'x', locales: { th: { name: 'x', description: 'x' } } }, (c) =>
+    c.reply('x'),
+  );
+});
