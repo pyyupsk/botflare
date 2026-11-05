@@ -1,0 +1,77 @@
+---
+title: Deploy
+description: Put the bot on Cloudflare, over the gateway or over HTTP.
+sidebar:
+  order: 2
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+A bot gets interactions from Discord in one of two ways. Pick one before you deploy.
+
+| Way     | How Discord reaches the bot                                                    | Gets gateway events |
+| ------- | ------------------------------------------------------------------------------ | ------------------- |
+| Gateway | A Durable Object keeps a WebSocket to the Discord Gateway open.                | Yes                 |
+| HTTP    | Discord sends a POST request to the Worker URL, the Interactions Endpoint URL. | No                  |
+
+The gateway keeps one Durable Object running all day. With 128 MB of memory, that uses about 11,000 GB-s of duration per day, or about 330,000 GB-s per month. The [Durable Objects pricing](https://developers.cloudflare.com/durable-objects/platform/pricing/) includes 13,000 GB-s per day on Workers Free and 400,000 GB-s per month on Workers Paid. Either plan covers one bot, but not two. The HTTP way uses no Durable Object time.
+
+## Deploy over the gateway
+
+The Worker from [Getting started](/guides/getting-started/) uses the gateway.
+
+<Steps>
+
+1. Deploy the Worker:
+
+   ```sh
+   npx wrangler deploy
+   ```
+
+2. Add the bot token as a secret:
+
+   ```sh
+   npx wrangler secret put DISCORD_TOKEN
+   ```
+
+3. Open the Worker URL once, such as `https://my-bot.your-account.workers.dev`. The page says `gateway started`.
+
+   After that, a Durable Object alarm checks the connection every minute. If the connection is down, the alarm opens it again. A new deploy restarts the Durable Object, and the alarm connects it again within a minute.
+
+</Steps>
+
+## Deploy over HTTP
+
+<Steps>
+
+1. Remove `gateway: 'GATEWAY'` and the `Gateway` export from `src/index.ts`, and remove the Durable Object from `wrangler.jsonc`.
+
+2. Deploy the Worker and add the public key as a secret:
+
+   ```sh
+   npx wrangler deploy
+   npx wrangler secret put DISCORD_PUBLIC_KEY
+   ```
+
+   If the bot calls `rest`, sends messages or runs cron jobs, also add `DISCORD_TOKEN`.
+
+3. In the Developer Portal, on the General Information page, set the Interactions Endpoint URL to the Worker URL. Discord sends a PING request to check the URL. `bot()` checks its signature and answers it.
+
+</Steps>
+
+## Send the commands to every server
+
+`botflare sync` sends the commands to the server in `DISCORD_GUILD_ID`. To send them to every server that has the bot, remove `DISCORD_GUILD_ID` and run the sync again:
+
+```sh
+npx botflare sync src/index.ts
+```
+
+## Environment variables
+
+| Name                     | Used by                                                              |
+| ------------------------ | -------------------------------------------------------------------- |
+| `DISCORD_TOKEN`          | The gateway, `rest`, `c.send` and `botflare sync`.                   |
+| `DISCORD_PUBLIC_KEY`     | `bot()`, to check requests that come over HTTP.                      |
+| `DISCORD_APPLICATION_ID` | `botflare sync`.                                                     |
+| `DISCORD_GUILD_ID`       | `botflare sync`. If you set it, the commands go to that server only. |

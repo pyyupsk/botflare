@@ -1,0 +1,114 @@
+---
+title: Getting started
+description: Make a Discord bot with one command and run it on your computer.
+sidebar:
+  order: 1
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+This guide makes a bot with one `/ping` command. The bot gets commands over the Discord Gateway, so it runs on your computer with no public URL.
+
+You need Node.js 22.18 or later, which runs TypeScript files, and a Discord account.
+
+## Create the Discord application
+
+<Steps>
+
+1. Open the [Discord Developer Portal](https://discord.com/developers/applications) and create an application.
+
+2. On the General Information page, copy the application ID and the public key.
+
+3. On the Bot page, reset the token and copy it. Keep the token secret: anyone who has it can act as your bot.
+
+4. On the Installation page, add the `applications.commands` and `bot` scopes to Guild Install. Open the install link and add the bot to a test server.
+
+5. Copy the ID of the test server. To see IDs, turn on Developer Mode in the Discord settings, under Advanced. Then right-click the server and select Copy Server ID.
+
+</Steps>
+
+## Create the Worker
+
+<Steps>
+
+1. Create a Worker project, then install botflare:
+
+   ```sh
+   npm create cloudflare@latest my-bot
+   cd my-bot
+   npm install botflare
+   ```
+
+   When the tool asks, pick a Hello World Worker in TypeScript.
+
+2. Replace `src/index.ts` with this code:
+
+   ```ts
+   import { bot, command } from 'botflare';
+   import { gateway } from 'botflare/gateway';
+
+   const ping = command({ name: 'ping', description: 'Check that the bot answers' }, (c) =>
+     c.reply('pong'),
+   );
+
+   const app = bot({ commands: [ping], gateway: 'GATEWAY' });
+
+   export const Gateway = gateway({ intents: ['Guilds'], bot: app, events: {} });
+
+   export default app;
+   ```
+
+   `gateway()` makes a Durable Object class. A Durable Object is a Cloudflare object that keeps state and can keep a connection open. This one holds the connection to the Discord Gateway.
+
+3. Add the Durable Object to `wrangler.jsonc`, next to the settings that are already there:
+
+   ```jsonc
+   {
+     "durable_objects": { "bindings": [{ "name": "GATEWAY", "class_name": "Gateway" }] },
+     "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Gateway"] }],
+   }
+   ```
+
+   The binding name, `GATEWAY`, must match `gateway: 'GATEWAY'` in `bot()`.
+
+4. Put the values from the Developer Portal in a `.dev.vars` file. Do not commit this file.
+
+   ```sh
+   DISCORD_TOKEN=your bot token
+   DISCORD_PUBLIC_KEY=your public key
+   DISCORD_APPLICATION_ID=your application id
+   DISCORD_GUILD_ID=your test server id
+   ```
+
+</Steps>
+
+## Run the bot
+
+<Steps>
+
+1. Send the commands to Discord:
+
+   ```sh
+   npx botflare sync src/index.ts
+   ```
+
+   `botflare sync` reads `.dev.vars`. With `DISCORD_GUILD_ID`, the commands go to your test server only and show at once.
+
+2. Start the Worker:
+
+   ```sh
+   npx wrangler dev
+   ```
+
+3. Open the local URL once, such as `http://localhost:8787`. The page says `gateway started`, and the bot shows as online.
+
+4. Type `/ping` in your test server. The bot answers `pong`.
+
+</Steps>
+
+If you change a command name, a description or an option, run `npx botflare sync src/index.ts` again.
+
+## Next steps
+
+- [Deploy](/guides/deploy/) the bot to Cloudflare.
+- See a bot with options and a button in [`examples/basic`](https://github.com/pyyupsk/botflare/tree/main/examples/basic).

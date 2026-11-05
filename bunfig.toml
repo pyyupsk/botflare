@@ -1,0 +1,4 @@
+[install]
+# Astro bundles native modules such as satteri, which cannot find their binary
+# in the isolated layout.
+linker = "hoisted"
