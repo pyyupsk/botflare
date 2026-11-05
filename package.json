@@ -34,7 +34,7 @@
     "vitest": "^5.1.0"
   },
   "peerDependencies": {
-    "typescript": "^7"
+    "typescript": "~6.0.3"
   },
   "nit": {
     "hooks": {
