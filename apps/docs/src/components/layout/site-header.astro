@@ -1,0 +1,47 @@
+---
+import { version } from 'botflare/package.json';
+import LanguageSelect from '@astrojs/starlight/components/LanguageSelect.astro';
+import Search from '@astrojs/starlight/components/Search.astro';
+import SiteTitle from '@astrojs/starlight/components/SiteTitle.astro';
+import SocialIcons from '@astrojs/starlight/components/SocialIcons.astro';
+import ThemeSelect from '@astrojs/starlight/components/ThemeSelect.astro';
+
+const links = [
+  { label: 'Guides', href: '/guides/getting-started/', active: Astro.url.pathname.startsWith('/guides/') },
+  { label: 'Examples', href: 'https://github.com/pyyupsk/botflare/tree/main/examples', active: false },
+];
+---
+
+<div class="flex h-full items-center gap-4">
+  <div class="flex min-w-0 items-center gap-3 overflow-clip">
+    <SiteTitle />
+    <a
+      class="border border-(--sl-color-gray-5) px-1.5 font-mono text-xs text-(--sl-color-gray-3) no-underline"
+      href="https://github.com/pyyupsk/botflare/releases"
+    >
+      v{version}
+    </a>
+  </div>
+  <nav class="hidden items-center gap-5 text-sm md:flex" aria-label="Site">
+    {
+      links.map((link) => (
+        <a
+          class:list={[
+            'no-underline',
+            link.active ? 'text-(--sl-color-white)' : 'text-(--sl-color-gray-3)',
+          ]}
+          href={link.href}
+          aria-current={link.active ? 'page' : undefined}
+        >
+          {link.label}
+        </a>
+      ))
+    }
+  </nav>
+  <div class="ms-auto flex print:hidden"><Search /></div>
+  <div class="hidden items-center gap-4 md:flex print:hidden">
+    <SocialIcons />
+    <ThemeSelect />
+    <LanguageSelect />
+  </div>
+</div>

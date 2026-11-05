@@ -9,6 +9,7 @@ export default defineConfig({
       title: 'botflare',
       logo: { src: './src/assets/logo.svg' },
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/pyyupsk/botflare' }],
+      components: { Header: './src/components/layout/site-header.astro' },
       sidebar: [{ label: 'Guides', items: [{ autogenerate: { directory: 'guides' } }] }],
       expressiveCode: {
         themes: ['gruvbox-dark-medium', 'gruvbox-light-medium'],

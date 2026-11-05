@@ -88,7 +88,11 @@ starlight-theme-select select,
 .sidebar-content a,
 .sl-markdown-content code,
 .starlight-aside,
-.sl-steps > li::before {
+.sl-steps > li::before,
+.sl-menu-button,
+mobile-starlight-toc .toggle,
+.expressive-code .copy button,
+.pagination-links a {
   border-radius: 0;
 }
 
