@@ -1,9 +1,8 @@
 import type { MessageFlags } from 'discord-api-types/v10';
 
 import type { Schemas } from '#lib/routes';
+import { type Button, buttonComponent } from '#utils/button';
 import { type SelectMenu, selectRow } from '#utils/select';
-
-export type Button = { id: string; label: string };
 
 export type MessageOptions = {
   buttons?: Button[];
@@ -35,9 +34,7 @@ export function message(
   for (let i = 0; i < buttons.length; i += PER_ROW) {
     rows.push({
       type: 1,
-      components: buttons
-        .slice(i, i + PER_ROW)
-        .map((b) => ({ type: 2, style: 1, label: b.label, custom_id: b.id })),
+      components: buttons.slice(i, i + PER_ROW).map(buttonComponent),
     });
   }
   data.components = rows;

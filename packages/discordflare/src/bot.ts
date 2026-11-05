@@ -90,6 +90,9 @@ async function startGateway(env: Record<string, unknown>, name: string): Promise
  * @param config.buttons Answers a click, keyed by the button id given to `reply`. An id such as
  *   `page:2` runs the `page` handler with `c.value` set to `'2'`. `update` edits the message that
  *   holds the button. Pass `{ buttons: [] }` to remove them.
+ *   A button takes a `label`, an `emoji` or both, and a `style`: `primary` (default), `secondary`,
+ *   `success` or `danger`. A button with a `url` instead of an `id` opens the link and needs no
+ *   handler. `disabled: true` greys a button out.
  * @param config.selects The select menus the bot answers, made with `select()`.
  * @returns The Worker handler. Export it as the default export of your Worker. Pass it to
  *   `gateway({ bot })` to answer interactions that arrive over the gateway too.
