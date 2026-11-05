@@ -278,6 +278,33 @@ it('defers a slow command and edits the answer in when the work is done', async 
   );
 });
 
+it('edits buttons into a deferred answer', async () => {
+  const fetch = vi.fn(async () => Response.json({}));
+  vi.stubGlobal('fetch', fetch);
+  const later = bot({
+    commands: [
+      command({ name: 'later', description: 'Asks late' }, (c) =>
+        c.defer(async () => ({ content: 'Ready?', buttons: [{ id: 'yes', label: 'Yes' }] })),
+      ),
+    ],
+  });
+
+  await later.fetch(await signed(slash('later', [])), env, ctx);
+  await waitOnExecutionContext(ctx);
+
+  expect(fetch).toHaveBeenCalledWith(
+    expect.stringContaining('/messages/@original'),
+    expect.objectContaining({
+      body: JSON.stringify({
+        content: 'Ready?',
+        components: [
+          { type: 1, components: [{ type: 2, style: 1, label: 'Yes', custom_id: 'yes' }] },
+        ],
+      }),
+    }),
+  );
+});
+
 it('replies with buttons', async () => {
   const res = await app.fetch(await signed(slash('pick', [])), env, ctx);
 

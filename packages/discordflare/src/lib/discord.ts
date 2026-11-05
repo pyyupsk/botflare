@@ -31,10 +31,8 @@ export async function putCommands(
 export async function editOriginal(
   applicationId: string,
   token: string,
-  content: string,
+  body: RESTPatchAPIWebhookWithTokenMessageJSONBody,
 ): Promise<Error | null> {
-  const body: RESTPatchAPIWebhookWithTokenMessageJSONBody = { content };
-
   const res = await fetch(`${API}/webhooks/${applicationId}/${token}/messages/@original`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },

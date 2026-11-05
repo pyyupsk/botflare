@@ -74,7 +74,8 @@ export function option<const T extends keyof OptionValue, const R extends boolea
  * @param config.options The options, keyed by name, made with {@link option}.
  * @param run Answers the command. It gets the interaction, the typed option values, `reply`
  *   for an answer within 3 seconds and `defer` for work that takes longer. Pass
- *   `{ ephemeral: true }` to either so only the user who ran the command sees the answer.
+ *   `{ ephemeral: true }` to either so only the user who ran the command sees the answer. The work of
+ *   `defer` returns the text, or `{ content, buttons }` to add buttons.
  * @returns The command, for the `commands` of {@link bot}.
  * @example
  * const greet = command(
@@ -255,17 +256,21 @@ export function bot(config: BotConfig): Bot {
 
     const values = optionValues(interaction.data);
 
-    const defer = (work: () => Promise<string>, options?: { ephemeral?: boolean }): Response => {
+    const defer: Context<Options>['defer'] = (work, options) => {
       const where = `/${interaction.data.name}`;
       const finish = async (): Promise<void> => {
-        let content = 'Something went wrong.';
+        let edit = message('Something went wrong.');
         try {
-          content = await work();
+          const done = await work();
+          edit =
+            typeof done === 'string'
+              ? message(done)
+              : message(done.content, { buttons: done.buttons });
         } catch (error) {
           await config.onError?.(error, where);
         }
 
-        const failed = await editOriginal(interaction.application_id, interaction.token, content);
+        const failed = await editOriginal(interaction.application_id, interaction.token, edit);
         if (failed) await config.onError?.(failed, where);
       };
       ctx.waitUntil(finish());
