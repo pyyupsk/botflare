@@ -18,6 +18,7 @@ import {
   type OptionValue,
   optionsPayload,
 } from '#utils/option';
+import { type Permission, permissionBits } from '#utils/permissions';
 
 export type Context<O extends Options> = {
   interaction: APIChatInputApplicationCommandInteraction;
@@ -36,14 +37,32 @@ export type Context<O extends Options> = {
   modal: (modal: Modal, value?: string) => Response;
 };
 
+export type Access = {
+  permissions?: Permission[];
+  contexts?: ('guild' | 'bot_dm' | 'private_channel')[];
+  installs?: ('guild' | 'user')[];
+};
+
+const CONTEXT = { guild: 0, bot_dm: 1, private_channel: 2 } as const;
+const INSTALL = { guild: 0, user: 1 } as const;
+
+function accessPayload(access: Access): Partial<Schemas['ApplicationCommandUpdateRequest']> {
+  const fields: Partial<Schemas['ApplicationCommandUpdateRequest']> = {};
+  if (access.permissions) fields.default_member_permissions = permissionBits(access.permissions);
+  if (access.contexts) fields.contexts = access.contexts.map((c) => CONTEXT[c]);
+  if (access.installs) fields.integration_types = access.installs.map((i) => INSTALL[i]);
+
+  return fields;
+}
+
 export type Command<O extends Options = Options> =
-  | {
+  | ({
       name: string;
       description: string;
       options: O;
       run(c: Context<O>): Response | Promise<Response>;
-    }
-  | { name: string; description: string; subcommands: Command[] };
+    } & Access)
+  | ({ name: string; description: string; subcommands: Command[] } & Access);
 
 export type MenuType = 'user' | 'message';
 
@@ -61,7 +80,7 @@ export type ContextMenu<T extends MenuType = MenuType> = {
   menu: T;
   name: string;
   run(c: MenuContext<T>): Response | Promise<Response>;
-};
+} & Access;
 
 const SUBCOMMAND: ApplicationCommandOptionType.Subcommand = 1;
 const GROUP: ApplicationCommandOptionType.SubcommandGroup = 2;
@@ -88,7 +107,10 @@ function childPayload(child: Command): CommandOption {
 export function payload(
   command: Command | ContextMenu,
 ): Schemas['ApplicationCommandUpdateRequest'] {
-  if ('menu' in command) return { type: command.menu === 'user' ? 2 : 3, name: command.name };
+  const access = accessPayload(command);
+  if ('menu' in command) {
+    return { type: command.menu === 'user' ? 2 : 3, name: command.name, ...access };
+  }
 
   const { name, description } = command;
   const options =
@@ -96,7 +118,7 @@ export function payload(
       ? command.subcommands.map(childPayload)
       : optionsPayload(command.options);
 
-  return { type: 1, name, description, options };
+  return { type: 1, name, description, options, ...access };
 }
 
 export function findCommand(

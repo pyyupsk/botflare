@@ -80,3 +80,24 @@ it('sends a context menu with its type and name only', () => {
   expect(payload(user)).toEqual({ type: 2, name: 'Show avatar' });
   expect(payload(msg)).toEqual({ type: 3, name: 'Quote' });
 });
+
+it('sends who sees a command, where it shows and how the app is installed', () => {
+  const ban = command(
+    {
+      name: 'ban',
+      description: 'Ban a member',
+      permissions: ['BanMembers'],
+      contexts: ['guild'],
+      installs: ['guild'],
+    },
+    (c) => c.reply('ok'),
+  );
+  const adminsOnly = contextMenu('user', { name: 'Warn', permissions: [] }, (c) => c.reply('ok'));
+
+  expect(payload(ban)).toMatchObject({
+    default_member_permissions: 4,
+    contexts: [0],
+    integration_types: [0],
+  });
+  expect(payload(adminsOnly)).toEqual({ type: 2, name: 'Warn', default_member_permissions: 0 });
+});

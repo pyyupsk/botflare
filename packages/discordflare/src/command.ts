@@ -1,4 +1,4 @@
-import type { Command, Context } from '#utils/command';
+import type { Access, Command, Context } from '#utils/command';
 import type { Options } from '#utils/option';
 
 /**
@@ -11,6 +11,11 @@ import type { Options } from '#utils/option';
  * @param config.name The name the user types after `/`.
  * @param config.description The text Discord shows under the name.
  * @param config.options The options, keyed by name, made with {@link option}.
+ * @param config.permissions Who sees the command by default: members with all of these
+ *   permissions, such as `['ManageGuild']`. Pass `[]` to show it to admins only. Server admins can
+ *   change this in Server Settings. Applies to a top-level command only.
+ * @param config.contexts Where the command shows: `guild`, `bot_dm` or `private_channel`.
+ * @param config.installs How the app must be installed for the command: `guild` or `user`.
  * @param run Answers the command. It gets the interaction, the typed option values, `reply`
  *   for an answer within 3 seconds and `defer` for work that takes longer. Pass
  *   `{ ephemeral: true }` to either so only the user who ran the command sees the answer, `buttons`
@@ -25,20 +30,23 @@ import type { Options } from '#utils/option';
  * );
  */
 export function command<const O extends Options = never>(
-  config: { name: string; description: string; options?: O },
+  config: { name: string; description: string; options?: O } & Access,
   run: (c: Context<O>) => Response | Promise<Response>,
 ): Command<O>;
-export function command(config: {
-  name: string;
-  description: string;
-  subcommands: Command[];
-}): Command;
 export function command(
-  config: { name: string; description: string; options?: Options; subcommands?: Command[] },
+  config: { name: string; description: string; subcommands: Command[] } & Access,
+): Command;
+export function command(
+  config: {
+    name: string;
+    description: string;
+    options?: Options;
+    subcommands?: Command[];
+  } & Access,
   run?: (c: Context<Options>) => Response | Promise<Response>,
 ): Command {
-  const { name, description, subcommands } = config;
-  if (subcommands) return { name, description, subcommands };
+  const { options, subcommands, ...rest } = config;
+  if (subcommands) return { ...rest, subcommands };
 
-  return { name, description, options: config.options ?? {}, run: run as NonNullable<typeof run> };
+  return { ...rest, options: options ?? {}, run: run as NonNullable<typeof run> };
 }

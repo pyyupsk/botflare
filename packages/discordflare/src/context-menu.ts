@@ -1,4 +1,4 @@
-import type { ContextMenu, MenuContext, MenuType } from '#utils/command';
+import type { Access, ContextMenu, MenuContext, MenuType } from '#utils/command';
 
 /**
  * Declares a context menu command: an item in the Apps menu when the user right-clicks a user or a
@@ -8,6 +8,9 @@ import type { ContextMenu, MenuContext, MenuType } from '#utils/command';
  * @param menu Whether the item shows on a `user` or on a `message`.
  * @param config What Discord shows.
  * @param config.name The name of the item, such as `Report message`.
+ * @param config.permissions Who sees the item by default, as in {@link command}.
+ * @param config.contexts Where the item shows, as in {@link command}.
+ * @param config.installs How the app must be installed for the item, as in {@link command}.
  * @param run Answers the click, with `reply`, `defer` and `modal` as in a slash command.
  * @returns The context menu command, for the `commands` of {@link bot}.
  * @example
@@ -15,8 +18,8 @@ import type { ContextMenu, MenuContext, MenuType } from '#utils/command';
  */
 export function contextMenu<const T extends MenuType>(
   menu: T,
-  config: { name: string },
+  config: { name: string } & Access,
   run: (c: MenuContext<T>) => Response | Promise<Response>,
 ): ContextMenu<T> {
-  return { menu, name: config.name, run };
+  return { ...config, menu, run };
 }
