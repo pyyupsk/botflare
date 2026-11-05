@@ -1,5 +1,6 @@
 import type {
   APIChatInputApplicationCommandInteraction,
+  APIContextMenuInteraction,
   APIInteraction,
   APIMessageComponentButtonInteraction,
   APIMessageComponentSelectMenuInteraction,
@@ -11,11 +12,12 @@ import type {
 import { answerAutocomplete } from '#answers/autocomplete';
 import { answerButton } from '#answers/button';
 import { answerCommand } from '#answers/command';
+import { answerMenu } from '#answers/menu';
 import { answerModal } from '#answers/modal';
 import { answerSelect } from '#answers/select';
 import { type Send, sendMessage } from '#lib/discord';
 import type { ButtonContext, ErrorHandler, Select } from '#types';
-import type { Command } from '#utils/command';
+import type { Command, ContextMenu } from '#utils/command';
 import type { Modal } from '#utils/modal';
 import { PONG } from '#utils/response';
 import type { SelectType } from '#utils/select';
@@ -27,13 +29,15 @@ const MESSAGE_COMPONENT: InteractionType.MessageComponent = 3;
 const AUTOCOMPLETE: InteractionType.ApplicationCommandAutocomplete = 4;
 const MODAL_SUBMIT: InteractionType.ModalSubmit = 5;
 const CHAT_INPUT: ApplicationCommandType.ChatInput = 1;
+const USER_MENU: ApplicationCommandType.User = 2;
+const MESSAGE_MENU: ApplicationCommandType.Message = 3;
 const BUTTON: ComponentType.Button = 2;
 const PUBLIC_KEY = /^[\da-f]{64}$/i;
 
 type CronContext = { controller: ScheduledController; send: Send };
 
 type BotConfig = {
-  commands: Command[];
+  commands: (Command | ContextMenu)[];
   buttons?: Record<string, (c: ButtonContext) => Response | Promise<Response>>;
   selects?: Select<SelectType, unknown>[];
   modals?: Modal[];
@@ -44,7 +48,7 @@ type BotConfig = {
 
 /** The Worker handler from {@link bot}. */
 export type Bot = {
-  commands: Command[];
+  commands: (Command | ContextMenu)[];
   fetch: (
     request: Request,
     env: { DISCORD_PUBLIC_KEY: string } & Record<string, unknown>,
@@ -73,7 +77,7 @@ async function startGateway(env: Record<string, unknown>, name: string): Promise
  * the hex public key of your application in the Discord Developer Portal.
  *
  * @param config What the bot answers.
- * @param config.commands The commands, made with {@link command}.
+ * @param config.commands The commands, made with {@link command} or `contextMenu()`.
  * @param config.modals The modals the bot answers, made with {@link modal}.
  * @param config.onError Gets errors from deferred work. If that work fails, the bot also edits the
  *   answer to "Something went wrong." so it does not stay on "thinking…".
@@ -95,7 +99,12 @@ async function startGateway(env: Record<string, unknown>, name: string): Promise
  * export default bot({ commands: [command({ name: 'ping', description: 'Pong' }, (c) => c.reply('pong'))] });
  */
 export function bot(config: BotConfig): Bot {
-  const commands = new Map(config.commands.map((c) => [c.name, c]));
+  const commands = new Map<string, Command>();
+  const menus = new Map<string, ContextMenu>();
+  for (const c of config.commands) {
+    if ('menu' in c) menus.set(`${c.menu}:${c.name}`, c);
+    else commands.set(c.name, c);
+  }
   const modals = new Map((config.modals ?? []).map((m) => [m.id, m]));
   const selects = new Map((config.selects ?? []).map((s) => [s.id, s]));
 
@@ -112,6 +121,12 @@ export function bot(config: BotConfig): Bot {
     if (interaction.type === MODAL_SUBMIT) return answerModal(interaction, modals);
     if (interaction.type === AUTOCOMPLETE) {
       return answerAutocomplete(interaction, commands, config.onError);
+    }
+    if (
+      interaction.type === APPLICATION_COMMAND &&
+      (interaction.data.type === USER_MENU || interaction.data.type === MESSAGE_MENU)
+    ) {
+      return answerMenu(interaction as APIContextMenuInteraction, menus, ctx, config.onError);
     }
     if (interaction.type === APPLICATION_COMMAND && interaction.data.type === CHAT_INPUT) {
       return answerCommand(

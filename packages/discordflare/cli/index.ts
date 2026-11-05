@@ -7,7 +7,7 @@ import { parseArgs } from 'node:util';
 import { cancel, intro, outro, spinner } from '@clack/prompts';
 
 import { putCommands } from '#lib/discord';
-import { type Command, payload } from '#utils/command';
+import { type Command, type ContextMenu, payload } from '#utils/command';
 import { syncEnv } from '#utils/env';
 
 const plural = (n: number): string => `${n} command${n === 1 ? '' : 's'}`;
@@ -47,7 +47,7 @@ async function main(): Promise<number> {
     return 1;
   }
 
-  let mod: { default?: { commands?: Command[] } };
+  let mod: { default?: { commands?: (Command | ContextMenu)[] } };
   try {
     mod = await import(pathToFileURL(resolve(entry)).href);
   } catch (error) {

@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 
-import { command, option } from '#index';
+import { command, contextMenu, option } from '#index';
 import { payload } from '#utils/command';
 
 it('turns a command into the body Discord expects, required options first', () => {
@@ -71,4 +71,12 @@ it('sends subcommands as type 1 and groups as type 2', () => {
       },
     ],
   });
+});
+
+it('sends a context menu with its type and name only', () => {
+  const user = contextMenu('user', { name: 'Show avatar' }, (c) => c.reply('ok'));
+  const msg = contextMenu('message', { name: 'Quote' }, (c) => c.reply('ok'));
+
+  expect(payload(user)).toEqual({ type: 2, name: 'Show avatar' });
+  expect(payload(msg)).toEqual({ type: 3, name: 'Quote' });
 });

@@ -1,6 +1,10 @@
 import type {
   APIApplicationCommandInteractionDataOption,
   APIChatInputApplicationCommandInteraction,
+  APIMessage,
+  APIMessageApplicationCommandInteraction,
+  APIUser,
+  APIUserApplicationCommandInteraction,
   ApplicationCommandOptionType,
 } from 'discord-api-types/v10';
 
@@ -41,6 +45,24 @@ export type Command<O extends Options = Options> =
     }
   | { name: string; description: string; subcommands: Command[] };
 
+export type MenuType = 'user' | 'message';
+
+export type MenuContext<T extends MenuType> = {
+  interaction: T extends 'user'
+    ? APIUserApplicationCommandInteraction
+    : APIMessageApplicationCommandInteraction;
+  target: T extends 'user' ? APIUser : APIMessage;
+  reply: Context<Options>['reply'];
+  defer: Context<Options>['defer'];
+  modal: Context<Options>['modal'];
+};
+
+export type ContextMenu<T extends MenuType = MenuType> = {
+  menu: T;
+  name: string;
+  run(c: MenuContext<T>): Response | Promise<Response>;
+};
+
 const SUBCOMMAND: ApplicationCommandOptionType.Subcommand = 1;
 const GROUP: ApplicationCommandOptionType.SubcommandGroup = 2;
 
@@ -63,7 +85,11 @@ function childPayload(child: Command): CommandOption {
   } as CommandOption;
 }
 
-export function payload(command: Command): Schemas['ApplicationCommandUpdateRequest'] {
+export function payload(
+  command: Command | ContextMenu,
+): Schemas['ApplicationCommandUpdateRequest'] {
+  if ('menu' in command) return { type: command.menu === 'user' ? 2 : 3, name: command.name };
+
   const { name, description } = command;
   const options =
     'subcommands' in command
