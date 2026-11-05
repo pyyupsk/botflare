@@ -6,7 +6,7 @@
   "assets": {
     "directory": "./dist",
     // Unknown URLs get dist/404.html with status 404.
-    "not_found_handling": "404-page"
+    "not_found_handling": "404-page",
   },
-  "routes": [{ "pattern": "botflare.fasu.dev", "custom_domain": true }]
+  "routes": [{ "pattern": "botflare.fasu.dev", "custom_domain": true }],
 }

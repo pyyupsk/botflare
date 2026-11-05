@@ -41,9 +41,9 @@
     "hooks": {
       "pre-commit": {
         "stages": {
-          "**/*.{ts,js,json,md}": "bun x oxfmt --check {staged_files}",
+          "**/*.{ts,js,json,jsonc,md}": "bun x oxfmt --check {staged_files}",
           "**/*.{ts,js}": "bun x oxlint {staged_files}",
-          "**/*.{ts,js,json}": "bun run deadcode"
+          "**/*.{ts,js,json,jsonc}": "bun run deadcode"
         }
       },
       "commit-msg": "bun x commitlint --edit $1",
