@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { existsSync } from 'node:fs';
 import { registerHooks } from 'node:module';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -9,6 +10,8 @@ import { cancel, intro, outro, spinner } from '@clack/prompts';
 import { putCommands } from '#lib/discord';
 import { type Command, type ContextMenu, payload } from '#utils/command';
 import { syncEnv } from '#utils/env';
+
+const ENV_FILES = ['.dev.vars', '.env'];
 
 const plural = (n: number): string => `${n} command${n === 1 ? '' : 's'}`;
 
@@ -40,6 +43,8 @@ async function main(): Promise<number> {
     cancel('Usage: botflare sync <worker entry>');
     return 1;
   }
+
+  for (const file of ENV_FILES) if (existsSync(file)) process.loadEnvFile(file);
 
   const [envError, env] = syncEnv(process.env);
   if (envError) {
