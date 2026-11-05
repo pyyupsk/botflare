@@ -85,9 +85,14 @@ const pick = command({ name: 'pick', description: 'Pick one' }, (c) =>
 );
 
 const feedback = modal(
-  { id: 'feedback', title: 'Feedback', fields: { text: { label: 'Your idea' } } },
+  {
+    id: 'feedback',
+    title: 'Feedback',
+    fields: { text: { label: 'Your idea' }, note: { label: 'Anything else', required: false } },
+  },
   (c) => {
     expectTypeOf(c.fields.text).toEqualTypeOf<string>();
+    expectTypeOf(c.fields.note).toEqualTypeOf<string | undefined>();
     // @ts-expect-error
     void c.fields.missing;
 

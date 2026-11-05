@@ -17,7 +17,9 @@ export type Modal<F extends Fields = Fields> = {
   fields: F;
   run(c: {
     interaction: APIModalSubmitInteraction;
-    fields: { [K in keyof F]: string };
+    fields: {
+      [K in keyof F]: F[K] extends { label: string; required?: true } ? string : string | undefined;
+    };
     reply: (content: string, options?: ReplyOptions) => Response;
   }): Response | Promise<Response>;
 };
@@ -39,16 +41,19 @@ export function modalData(modal: Modal): APIModalInteractionResponseCallbackData
   };
 }
 
-export function fieldValues(components: APIModalSubmissionComponent[]): Record<string, string> {
+export function fieldValues(
+  components: APIModalSubmissionComponent[],
+): Record<string, string | undefined> {
   const inputs = components.flatMap((row) => {
     if ('component' in row) return [row.component];
     if ('components' in row) return row.components;
     return [];
   });
 
-  const values: Record<string, string> = {};
+  const values: Record<string, string | undefined> = {};
   for (const input of inputs) {
-    if ('value' in input && typeof input.value === 'string') values[input.custom_id] = input.value;
+    if ('value' in input && typeof input.value === 'string')
+      values[input.custom_id] = input.value || undefined;
   }
 
   return values;

@@ -103,6 +103,7 @@ export function command<const O extends Options = never>(
  * @param config.title The title of the popup.
  * @param config.fields The text fields, keyed by name. A field is required unless `required` is `false`.
  * @param run Answers the submitted form. `c.fields` holds the text of each field, keyed by name.
+ *   A field that is not required and left empty is `undefined`.
  * @returns The modal, for `c.modal()` and the `modals` of {@link bot}.
  * @example
  * const feedback = modal(

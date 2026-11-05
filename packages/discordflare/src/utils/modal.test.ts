@@ -43,3 +43,11 @@ it('reads the typed text from labels and from older action rows', () => {
 
   expect(values).toEqual({ text: 'ship it', name: 'yu' });
 });
+
+it('gives undefined for a field left empty', () => {
+  const values = fieldValues([
+    { type: 18, id: 1, component: { type: 4, id: 2, custom_id: 'note', value: '' } },
+  ]);
+
+  expect(values).toEqual({ note: undefined });
+});
