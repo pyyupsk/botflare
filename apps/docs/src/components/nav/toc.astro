@@ -1,0 +1,36 @@
+---
+import type { MarkdownHeading } from 'astro';
+
+type Props = { headings: MarkdownHeading[] };
+
+const headings = Astro.props.headings.filter((h) => h.depth === 2 || h.depth === 3);
+---
+
+{
+  headings.length > 1 && (
+    <nav class="text-sm" aria-label="On this page">
+      <p class="mb-2 font-mono text-xs text-faint">on this page</p>
+      <ul class="space-y-1.5">
+        {headings.map((h) => (
+          <li class:list={[h.depth === 3 && 'pl-3']}>
+            <a class="block text-muted hover:text-text data-on:text-accent" href={`#${h.slug}`} data-toc>
+              {h.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+<script>
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('[data-toc]')];
+  const targets = links.map((a) => document.getElementById(a.hash.slice(1))).filter((el) => el !== null);
+
+  const mark = () => {
+    const current = targets.findLast((el) => el.getBoundingClientRect().top < 120) ?? targets[0];
+    for (const a of links) a.toggleAttribute('data-on', a.hash === `#${current?.id}`);
+  };
+  addEventListener('scroll', mark, { passive: true });
+  mark();
+</script>

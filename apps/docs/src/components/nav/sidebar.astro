@@ -1,0 +1,47 @@
+---
+import type { NavGroup } from '#lib/nav';
+
+type Props = { groups: NavGroup[] };
+
+const { groups } = Astro.props;
+const path = Astro.url.pathname;
+---
+
+<nav class="space-y-5 text-sm" aria-label="Pages">
+  {
+    groups.map((group, i) => {
+      const open = i === 0 || group.items.some((item) => item.href === path);
+      return (
+        <>
+        {i === 1 && <p class="border-t border-line pt-5 font-mono text-xs text-faint">api</p>}
+        <details open={open} class="group">
+          <summary class="flex cursor-pointer list-none items-center justify-between rounded-md py-1 font-semibold text-text [&::-webkit-details-marker]:hidden">
+            <span class:list={[group.label.includes('/') && 'font-mono text-xs']}>{group.label}</span>
+            <span class="font-mono text-xs text-faint group-open:rotate-90" aria-hidden="true">›</span>
+          </summary>
+          <ul class="mt-1 space-y-px border-l border-line">
+            {group.items.map((item) => {
+              const active = item.href === path;
+              return (
+                <li>
+                  <a
+                    class:list={[
+                      '-ml-px block border-l py-1 pl-3 hover:text-text',
+                      active ? 'border-accent font-medium text-text' : 'border-transparent text-muted',
+                      i > 0 && 'font-mono text-xs',
+                    ]}
+                    href={item.href}
+                    aria-current={active ? 'page' : undefined}
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </details>
+        </>
+      );
+    })
+  }
+</nav>

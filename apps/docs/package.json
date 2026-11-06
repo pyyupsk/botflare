@@ -2,24 +2,32 @@
   "name": "botflare-docs",
   "private": true,
   "type": "module",
+  "imports": {
+    "#components/*": "./src/components/*",
+    "#lib/*": "./src/lib/*.ts",
+    "#styles/*": "./src/styles/*"
+  },
   "scripts": {
-    "build": "astro build",
-    "dev": "astro dev",
+    "api": "typedoc && bun scripts/links.ts",
+    "build": "bun run api && astro build && pagefind --site dist",
+    "dev": "bun run api && astro dev",
     "preview": "astro preview"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.42.9",
-    "@astrojs/starlight-tailwind": "^5.0.0",
-    "@fontsource-variable/archivo": "^5.3.0",
-    "@fontsource/ibm-plex-mono": "^5.3.0",
-    "@fontsource/ibm-plex-sans": "^5.3.0",
+    "@astrojs/mdx": "8.1.2",
+    "@astrojs/sitemap": "3.7.4",
+    "@fontsource-variable/bricolage-grotesque": "5.3.0",
+    "@fontsource-variable/spline-sans-mono": "5.3.0",
     "@tailwindcss/vite": "^4.3.4",
     "astro": "^7.3.6",
+    "astro-expressive-code": "0.44.3",
     "botflare": "workspace:*",
-    "starlight-typedoc": "0.23.2",
     "tailwindcss": "^4.3.4",
     "typedoc": "0.28.20",
     "typedoc-plugin-markdown": "4.14.1",
     "typedoc-plugin-missing-exports": "4.1.4"
+  },
+  "devDependencies": {
+    "pagefind": "1.6.0"
   }
 }

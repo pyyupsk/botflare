@@ -1,8 +1,7 @@
 ---
 title: Answers
 description: Reply, defer, ephemeral messages, embeds, files, mentions and follow-ups.
-sidebar:
-  order: 4
+order: 4
 ---
 
 Discord waits 3 seconds for the first answer to an interaction. A handler returns one of these answers:
@@ -21,7 +20,7 @@ Discord waits 3 seconds for the first answer to an interaction. A handler return
 
 ```ts
 c.reply('Report ready', {
-  embeds: [{ title: 'Uptime', description: '99.9%', color: 0xff6a4d }],
+  embeds: [{ title: 'Uptime', description: '99.9%', color: 0x57f287 }],
   buttons: [{ id: 'refresh', label: 'Refresh' }],
   files: [{ name: 'report.csv', data: 'name,count\napple,3\n' }],
   ephemeral: true,

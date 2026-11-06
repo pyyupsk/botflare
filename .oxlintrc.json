@@ -11,7 +11,7 @@
     "import/no-cycle": "error",
     "import/no-duplicates": "error",
     "import/no-self-import": "error",
-    "import/no-unassigned-import": "error",
+    "import/no-unassigned-import": ["error", { "allow": ["**/*.css"] }],
     "import/no-default-export": "error",
     "typescript/consistent-type-imports": "error",
     "typescript/no-explicit-any": "error",

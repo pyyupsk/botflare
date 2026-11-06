@@ -1,19 +1,14 @@
 ---
 title: Getting started
 description: Make a Discord bot with one command and run it on your computer.
-sidebar:
-  order: 1
+order: 1
 ---
-
-import { Steps } from '@astrojs/starlight/components';
 
 This guide makes a bot with one `/ping` command. The bot gets commands over the Discord Gateway, so it runs on your computer with no public URL.
 
 You need Node.js 22.18 or later, which runs TypeScript files, and a Discord account.
 
 ## Create the Discord application
-
-<Steps>
 
 1. Open the [Discord Developer Portal](https://discord.com/developers/applications) and create an application.
 
@@ -25,11 +20,7 @@ You need Node.js 22.18 or later, which runs TypeScript files, and a Discord acco
 
 5. Copy the ID of the test server. To see IDs, turn on Developer Mode in the Discord settings, under Advanced. Then right-click the server and select Copy Server ID.
 
-</Steps>
-
 ## Create the Worker
-
-<Steps>
 
 1. Create a Worker project, then install botflare:
 
@@ -80,11 +71,7 @@ You need Node.js 22.18 or later, which runs TypeScript files, and a Discord acco
    DISCORD_GUILD_ID=your test server id
    ```
 
-</Steps>
-
 ## Run the bot
-
-<Steps>
 
 1. Send the commands to Discord:
 
@@ -103,8 +90,6 @@ You need Node.js 22.18 or later, which runs TypeScript files, and a Discord acco
 3. Open the local URL once, such as `http://localhost:8787`. The page says `gateway started`, and the bot shows as online.
 
 4. Type `/ping` in your test server. The bot answers `pong`.
-
-</Steps>
 
 If you change a command name, a description or an option, run `npx botflare sync src/index.ts` again.
 

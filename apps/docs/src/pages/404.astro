@@ -1,0 +1,17 @@
+---
+import Shell from '#components/layout/shell.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<Shell title="Page not found" description="This page does not exist.">
+  <main id="main" class="mx-auto max-w-2xl px-4 py-24 sm:px-6">
+    <p class="font-mono text-accent">/404</p>
+    <h1 class="mt-2 text-5xl font-bold tracking-tight">No page here.</h1>
+    <p class="mt-4 text-lg text-muted">
+      It moved, or the link has a typo. Press <kbd class="rounded-md border border-line-strong px-1.5 font-mono text-sm">/</kbd> to search, or start again from
+      <a class="text-accent underline underline-offset-4" href={`${base}/guides/getting-started/`}>Getting started</a> or the
+      <a class="text-accent underline underline-offset-4" href={`${base}/`}>home page</a>.
+    </p>
+  </main>
+</Shell>

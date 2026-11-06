@@ -1,11 +1,8 @@
 ---
 title: Deploy
 description: Put the bot on Cloudflare, over the gateway or over HTTP.
-sidebar:
-  order: 2
+order: 2
 ---
-
-import { Steps } from '@astrojs/starlight/components';
 
 A bot gets interactions from Discord in one of two ways. Pick one before you deploy.
 
@@ -19,8 +16,6 @@ The gateway keeps one Durable Object running all day. With 128 MB of memory, tha
 ## Deploy over the gateway
 
 The Worker from [Getting started](/botflare/guides/getting-started/) uses the gateway.
-
-<Steps>
 
 1. Deploy the Worker:
 
@@ -38,11 +33,7 @@ The Worker from [Getting started](/botflare/guides/getting-started/) uses the ga
 
    After that, a Durable Object alarm checks the connection every minute. If the connection is down, the alarm opens it again. A new deploy restarts the Durable Object, and the alarm connects it again within a minute.
 
-</Steps>
-
 ## Deploy over HTTP
-
-<Steps>
 
 1. Remove `gateway: 'GATEWAY'` and the `Gateway` export from `src/index.ts`, and remove the Durable Object from `wrangler.jsonc`.
 
@@ -56,8 +47,6 @@ The Worker from [Getting started](/botflare/guides/getting-started/) uses the ga
    If the bot calls `rest`, sends messages or runs cron jobs, also add `DISCORD_TOKEN`.
 
 3. In the Developer Portal, on the General Information page, set the Interactions Endpoint URL to the Worker URL. Discord sends a PING request to check the URL. `bot()` checks its signature and answers it.
-
-</Steps>
 
 ## Send the commands to every server
 

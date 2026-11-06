@@ -1,0 +1,30 @@
+---
+import type { NavItem } from '#lib/nav';
+
+type Props = { prev?: NavItem | undefined; next?: NavItem | undefined };
+
+const { prev, next } = Astro.props;
+---
+
+<nav class="mt-16 grid gap-3 border-t border-line pt-6 sm:grid-cols-2" aria-label="More pages">
+  {
+    prev && (
+      <a class="rounded-xl border border-line p-4 hover:border-line-strong" href={prev.href} rel="prev">
+        <span class="font-mono text-xs text-faint">← previous</span>
+        <span class="mt-1 block font-semibold text-text">{prev.label}</span>
+      </a>
+    )
+  }
+  {
+    next && (
+      <a
+        class="rounded-xl border border-line p-4 text-right hover:border-line-strong sm:col-start-2"
+        href={next.href}
+        rel="next"
+      >
+        <span class="font-mono text-xs text-faint">next →</span>
+        <span class="mt-1 block font-semibold text-text">{next.label}</span>
+      </a>
+    )
+  }
+</nav>

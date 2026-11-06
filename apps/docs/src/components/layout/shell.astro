@@ -1,0 +1,43 @@
+---
+import '#styles/global.css';
+
+import Header from '#components/layout/header.astro';
+import Slash from '#components/search/slash.astro';
+import { nav } from '#lib/nav';
+
+type Props = { title: string; description: string };
+
+const { title, description } = Astro.props;
+const groups = await nav();
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const fullTitle = title === 'botflare' ? title : `${title} · botflare`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    <link rel="icon" href={`${base}/favicon.svg`} type="image/svg+xml" />
+    <link rel="sitemap" href={`${base}/sitemap-index.xml`} />
+    <script is:inline>
+      document.documentElement.dataset.theme =
+        localStorage.getItem('theme') ??
+        (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    </script>
+  </head>
+  <body class="min-h-screen bg-bg text-text antialiased">
+    <a
+      class="sr-only rounded-md bg-accent-fill px-3 py-2 text-accent-ink focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50"
+      href="#main">Skip to content</a
+    >
+    <Header groups={groups} />
+    <slot />
+    <Slash groups={groups} />
+  </body>
+</html>

@@ -1,4 +1,5 @@
 {
   "$schema": "./node_modules/fallow/schema.json",
-  "ignoreDependencies": ["typedoc-plugin-missing-exports"]
+  "entry": ["apps/docs/ec.config.mjs"],
+  "ignoreDependencies": ["typedoc-plugin-markdown", "typedoc-plugin-missing-exports"]
 }

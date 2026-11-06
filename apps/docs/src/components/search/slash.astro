@@ -1,0 +1,176 @@
+---
+import type { NavGroup } from '#lib/nav';
+
+type Props = { groups: NavGroup[] };
+
+const pages = Astro.props.groups.flatMap((g) =>
+  g.items.map((item) => ({ ...item, group: g.label })),
+);
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<dialog
+  id="slash"
+  class="mx-auto mt-24 w-full max-w-xl overflow-hidden rounded-2xl border border-line-strong bg-surface p-0 text-text backdrop:bg-bg/70 backdrop:backdrop-blur-sm"
+  aria-label="Search the docs"
+>
+  <label class="flex items-center gap-3 border-b border-line px-4 py-3.5 font-mono">
+    <span class="text-lg text-accent" aria-hidden="true">/</span>
+    <input
+      class="min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-faint"
+      placeholder="type a page, a function or any word"
+      autocomplete="off"
+      spellcheck="false"
+      role="combobox"
+      aria-expanded="true"
+      aria-controls="slash-list"
+      data-slash-input
+    />
+    <kbd class="rounded-md border border-line px-1.5 text-xs text-faint">esc</kbd>
+  </label>
+  <ul id="slash-list" class="max-h-96 overflow-y-auto p-2" role="listbox" data-slash-list></ul>
+  <p class="flex gap-4 border-t border-line px-4 py-2 font-mono text-xs text-faint">
+    <span>↑↓ pick</span><span>enter open</span><span class="ms-auto" data-slash-count></span>
+  </p>
+</dialog>
+
+<script is:inline type="application/json" id="slash-pages" set:html={JSON.stringify(pages)} />
+<script is:inline type="application/json" id="slash-base" set:html={JSON.stringify(base)} />
+
+<script>
+  type Page = { label: string; href: string; hint: string; group: string };
+  type Hit = { label: string; href: string; hint: string; kind: string };
+  type Pagefind = {
+    debouncedSearch(q: string): Promise<{ results: { data(): Promise<{ url: string; excerpt: string; meta: { title?: string } }> }[] } | null>;
+  };
+
+  const json = <T,>(id: string): T => JSON.parse(document.getElementById(id)?.textContent ?? 'null');
+  const pages = json<Page[]>('slash-pages');
+  const base = json<string>('slash-base');
+
+  const dialog = document.getElementById('slash') as HTMLDialogElement;
+  const input = dialog.querySelector('[data-slash-input]') as HTMLInputElement;
+  const list = dialog.querySelector('[data-slash-list]') as HTMLUListElement;
+  const count = dialog.querySelector('[data-slash-count]') as HTMLElement;
+
+  let hits: Hit[] = [];
+  let at = 0;
+  let pagefind: Promise<Pagefind | null> | undefined;
+
+  function score(text: string, query: string): number {
+    const t = text.toLowerCase();
+    const direct = t.indexOf(query);
+    if (direct !== -1) return 100 - direct;
+
+    let from = 0;
+    let gaps = 0;
+    for (const ch of query) {
+      const found = t.indexOf(ch, from);
+      if (found === -1) return 0;
+      gaps += found - from;
+      from = found + 1;
+    }
+    return Math.max(1, 50 - gaps);
+  }
+
+  function escape(text: string): string {
+    return text.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
+  }
+
+  function draw() {
+    list.innerHTML = hits
+      .map(
+        (hit, i) => `<li role="option" aria-selected="${i === at}">
+          <a href="${hit.href}" class="flex items-baseline gap-3 rounded-lg px-3 py-2 ${i === at ? 'bg-raised' : ''}">
+            <span class="font-mono text-sm ${i === at ? 'text-accent' : 'text-text'}">/${escape(hit.label)}</span>
+            <span class="min-w-0 flex-1 truncate text-sm text-faint">${hit.hint}</span>
+            <span class="font-mono text-xs text-faint">${escape(hit.kind)}</span>
+          </a></li>`,
+      )
+      .join('');
+    count.textContent = hits.length ? `${hits.length} results` : 'nothing yet';
+    list.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest' });
+  }
+
+  async function importPagefind(): Promise<Pagefind | null> {
+    try {
+      return await import(/* @vite-ignore */ `${base}/pagefind/pagefind.js`);
+    } catch {
+      return null;
+    }
+  }
+
+  function loadPagefind(): Promise<Pagefind | null> {
+    pagefind ??= importPagefind();
+    return pagefind;
+  }
+
+  async function search() {
+    const query = input.value.trim().replace(/^\//, '').toLowerCase();
+    const titles = query
+      ? pages
+          .map((page) => ({ page, s: score(page.label, query) }))
+          .filter((m) => m.s > 0)
+          .toSorted((a, b) => b.s - a.s)
+          .slice(0, 8)
+          .map(({ page }) => ({ label: page.label, href: page.href, hint: escape(page.hint), kind: page.group }))
+      : pages.slice(0, 10).map((page) => ({ label: page.label, href: page.href, hint: escape(page.hint), kind: page.group }));
+
+    hits = titles;
+    at = 0;
+    draw();
+    if (query.length < 2) return;
+
+    const found = await (await loadPagefind())?.debouncedSearch(query);
+    if (!found || input.value.trim().replace(/^\//, '').toLowerCase() !== query) return;
+
+    const seen = new Set(titles.map((t) => t.href));
+    const text = await Promise.all(found.results.slice(0, 6).map((r) => r.data()));
+    hits = [
+      ...titles,
+      ...text
+        .filter((t) => !seen.has(t.url))
+        .map((t) => ({ label: t.meta.title ?? t.url, href: t.url, hint: t.excerpt, kind: 'text' })),
+    ];
+    draw();
+  }
+
+  function open() {
+    if (dialog.open) return;
+    dialog.showModal();
+    input.value = '';
+    search();
+  }
+
+  input.addEventListener('input', search);
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      at = (at + (event.key === 'ArrowDown' ? 1 : -1) + hits.length) % Math.max(hits.length, 1);
+      draw();
+    }
+    if (event.key === 'Enter' && hits[at]) location.href = hits[at].href;
+  });
+  dialog.addEventListener('click', (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+
+  for (const button of document.querySelectorAll('[data-slash-open]')) button.addEventListener('click', open);
+  addEventListener('keydown', (event) => {
+    const typing = event.target instanceof HTMLElement && event.target.closest('input, textarea, [contenteditable]');
+    if ((event.key === '/' && !typing) || (event.key === 'k' && (event.metaKey || event.ctrlKey))) {
+      event.preventDefault();
+      open();
+    }
+  });
+
+  const hint = document.querySelector<HTMLElement>('[data-slash-hint]');
+  if (hint && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const samples = ['answers defer', 'rest', 'gateway events', 'modal', 'buttons and menus', 'cron jobs'];
+    let n = 0;
+    setInterval(() => {
+      n = (n + 1) % samples.length;
+      hint.textContent = samples[n] ?? '';
+    }, 2600);
+  }
+</script>

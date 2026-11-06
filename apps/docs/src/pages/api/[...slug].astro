@@ -1,0 +1,28 @@
+---
+import { getCollection, render } from 'astro:content';
+
+import Doc from '#components/layout/doc.astro';
+import { apiTitle } from '#lib/nav';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('api');
+  return pages.map((page) => ({
+    params: { slug: page.id === 'index' ? undefined : page.id },
+    props: { page },
+  }));
+}
+
+const { page } = Astro.props;
+const { Content, headings } = await render(page);
+const title = page.id === 'index' ? 'API reference' : apiTitle(page.body);
+---
+
+<Doc
+  title={title}
+  description={`${title} in the botflare API reference.`}
+  section="api"
+  headings={headings}
+  ownTitle
+>
+  <Content />
+</Doc>

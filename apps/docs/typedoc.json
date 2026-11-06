@@ -1,8 +1,16 @@
 {
   "$schema": "https://typedoc.org/schema.json",
-  "plugin": ["typedoc-plugin-missing-exports"],
+  "entryPoints": ["../../packages/botflare/src/index.ts", "../../packages/botflare/src/gateway.ts"],
+  "tsconfig": "../../packages/botflare/tsconfig.json",
+  "out": "src/content/api",
+  "plugin": ["typedoc-plugin-markdown", "typedoc-plugin-missing-exports"],
   "internalModule": "Other types",
   "excludeExternals": true,
   "excludeInternal": true,
-  "gitRevision": "main"
+  "gitRevision": "main",
+  "readme": "none",
+  "hidePageHeader": true,
+  "hideBreadcrumbs": true,
+  "disableSources": false,
+  "entryFileName": "index"
 }

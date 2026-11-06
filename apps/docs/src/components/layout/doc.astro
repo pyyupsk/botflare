@@ -1,0 +1,66 @@
+---
+import type { MarkdownHeading } from 'astro';
+
+import Shell from '#components/layout/shell.astro';
+import Pager from '#components/nav/pager.astro';
+import Sidebar from '#components/nav/sidebar.astro';
+import Toc from '#components/nav/toc.astro';
+import { nav, neighbors } from '#lib/nav';
+
+type Props = {
+  title: string;
+  description: string;
+  /** Where the page sits, shown after the title, such as `guides`. */
+  section: string;
+  headings: MarkdownHeading[];
+  /** TypeDoc pages bring their own `# Title`. */
+  ownTitle?: boolean;
+};
+
+const { title, description, section, headings, ownTitle = false } = Astro.props;
+const groups = await nav();
+const { prev, next } = neighbors(groups, Astro.url.pathname);
+---
+
+<Shell title={title} description={description}>
+  <div class="mx-auto grid max-w-screen-2xl gap-10 px-4 sm:px-6 lg:grid-cols-(--doc-cols) xl:grid-cols-(--doc-cols-xl)">
+    <aside class="hidden lg:block">
+      <div class="sticky top-16 max-h-(--below-header) overflow-y-auto py-8 pr-2">
+        <Sidebar groups={groups} />
+      </div>
+    </aside>
+
+    <main id="main" class="min-w-0 py-10" data-pagefind-body data-pagefind-meta={`title:${title}`}>
+      {
+        !ownTitle && (
+          <header class="mb-8">
+            <h1 class="text-4xl font-bold tracking-tight text-text sm:text-5xl">
+              {title} <span class="font-medium text-faint" data-pagefind-ignore>/ {section}</span>
+            </h1>
+            <p class="mt-3 max-w-2xl text-lg text-muted">{description}</p>
+          </header>
+        )
+      }
+      <article class="prose max-w-3xl">
+        <slot />
+      </article>
+      <div class="max-w-3xl" data-pagefind-ignore>
+        <Pager prev={prev} next={next} />
+      </div>
+    </main>
+
+    <aside class="hidden xl:block">
+      <div class="sticky top-16 py-10">
+        <Toc headings={headings} />
+      </div>
+    </aside>
+  </div>
+</Shell>
+
+<style is:global>
+  :root {
+    --doc-cols: 15rem minmax(0, 1fr);
+    --doc-cols-xl: 15rem minmax(0, 1fr) 13rem;
+    --below-header: calc(100dvh - 4rem);
+  }
+</style>

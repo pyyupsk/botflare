@@ -1,6 +1,7 @@
 ---
-import { Code, TabItem, Tabs } from '@astrojs/starlight/components';
-import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { Code } from 'astro-expressive-code/components';
+
+import Shell from '#components/layout/shell.astro';
 
 const command = `const roll = command(
   {
@@ -51,246 +52,234 @@ const typed = `await rest.post('/channels/{channel_id}/messages', {
   //      ~~~~~~~ Type 'number' is not assignable to type 'string'.
 });`;
 
-const rule = 'border-(--sl-color-gray-5)';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const examples = [
+  { id: 'command', label: 'Command', code: command, you: '/roll sides:20', bot: 'You rolled 17  [Roll again]', note: 'a slash command with a button' },
+  { id: 'button', label: 'Button', code: button, you: 'clicks Roll again', bot: 'You rolled 4', note: 'the click edits the same message' },
+  { id: 'event', label: 'Event', code: event, you: 'joins the server', bot: 'Welcome, @yu', note: 'needs the GuildMembers intent' },
+  { id: 'rest', label: 'REST', code: rest, you: '/joined', bot: 'Joined 2026-11-04T15:21:52+00:00', note: 'member is typed from the spec' },
+];
+
+const jumps = [
+  { cmd: 'getting-started', hint: 'a bot with one command, on your computer', href: `${base}/guides/getting-started/` },
+  { cmd: 'answers', hint: 'reply, defer, update, modal, follow-ups', href: `${base}/guides/answers/` },
+  { cmd: 'gateway-events', hint: 'member joins, messages, presence', href: `${base}/guides/gateway-events/` },
+  { cmd: 'rest', hint: 'any Discord route, typed', href: `${base}/guides/rest/` },
+];
+
+const path = [
+  { name: 'Discord', code: 'interactions, events', text: 'Sends slash commands, clicks and form submits, and gateway events such as member joins.' },
+  { name: 'Worker', code: 'bot()', text: 'Checks the Ed25519 signature, runs the matching handler and returns the answer.' },
+  { name: 'Durable Object', code: 'gateway()', text: 'Keeps the WebSocket open, resumes after a drop, and passes interactions to bot().' },
+];
+
+const compare = [
+  ['Commands, buttons, menus, modals', 'Yes', 'Yes'],
+  ['Events, such as member joins', 'Yes', 'No'],
+  ['Needs a public URL', 'No', 'Yes, the Interactions Endpoint URL'],
+  ['Durable Object time', 'About 11,000 GB-s a day', 'None'],
+];
 ---
 
-<StarlightPage
-  frontmatter={{
-    title: 'botflare',
-    description: 'Build Discord bots that run on Cloudflare Workers.',
-    template: 'splash',
-    pagefind: false,
-  }}
->
-  <div class:list={['not-content mx-auto max-w-6xl border text-(--sl-color-gray-2)', rule]}>
-    <section class:list={['grid border-b md:grid-cols-(--grid-hero)', rule]}>
-      <div class:list={['flex flex-col gap-4 border-b p-6 md:border-r md:border-b-0', rule]}>
-        <h1
-          class="font-display text-7xl leading-none font-extrabold font-stretch-75% text-(--sl-color-white)"
-        >
-          botflare
+<Shell title="botflare" description="Build Discord bots that run on Cloudflare Workers.">
+  <main id="main" class="mx-auto max-w-6xl px-4 sm:px-6">
+    <section class="grid gap-10 py-14 lg:grid-cols-2 lg:items-center lg:py-20">
+      <div class="min-w-0">
+        <h1 class="text-5xl leading-none font-bold tracking-tight sm:text-7xl">
+          Discord bots <span class="text-faint">/</span> on Workers.
         </h1>
-        <p
-          class="font-display text-2xl leading-tight font-semibold font-stretch-semi-condensed text-(--sl-color-white)"
-        >
-          Discord bots on Cloudflare Workers.
+        <p class="mt-6 max-w-lg text-lg text-muted">
+          Answer commands, buttons and modals over HTTP or over the gateway. The REST client takes its
+          types from Discord's own API spec. Everything a bot imports is 13&nbsp;kB gzipped.
         </p>
-        <p>
-          Answer commands, buttons and modals over HTTP or over the gateway. The REST client takes
-          its types from Discord's own API spec. Everything a bot imports is 13&nbsp;kB gzipped.
-        </p>
-        <Code code="npm install botflare" lang="sh" frame="none" />
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div class="mt-8 max-w-md"><Code code="npm install botflare" lang="sh" frame="none" /></div>
+        <div class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3">
           <a
-            class="bg-(--sl-color-accent) px-3 py-2 font-semibold text-(--sl-color-black) no-underline"
-            href={`${import.meta.env.BASE_URL}/guides/getting-started/`}>Read the guide</a
+            class="rounded-xl bg-accent-fill px-4 py-2.5 font-semibold text-accent-ink hover:opacity-90"
+            href={`${base}/guides/getting-started/`}>Read the guide</a
           >
-          <a class="text-(--sl-color-text-accent)" href="https://github.com/pyyupsk/botflare"
-            >GitHub</a
-          >
+          <a class="text-muted underline underline-offset-4 hover:text-text" href="https://github.com/pyyupsk/botflare">GitHub</a>
           <a
-            class="text-(--sl-color-text-accent)"
+            class="text-muted underline underline-offset-4 hover:text-text"
             href="https://github.com/pyyupsk/botflare/tree/main/examples/basic">Example</a
           >
         </div>
       </div>
-      <div class="min-w-0 p-4">
-        <Tabs>
-          <TabItem label="Command">
-            <Code code={command} lang="ts" />
-            <p class="mt-3 font-mono text-sm">
-              /roll sides:20<br /><span class="text-(--sl-color-text-accent)">my-bot</span> You rolled
-              17 · Roll again
-            </p>
-          </TabItem>
-          <TabItem label="Button">
-            <Code code={button} lang="ts" />
-            <p class="mt-3 font-mono text-sm">
-              The click edits the same message: <span class="text-(--sl-color-text-accent)"
-                >my-bot</span
-              > You rolled 4
-            </p>
-          </TabItem>
-          <TabItem label="Event">
-            <Code code={event} lang="ts" />
-            <p class="mt-3 font-mono text-sm">
-              #welcome · <span class="text-(--sl-color-text-accent)">my-bot</span> Welcome, @yu
-            </p>
-            <p class="mt-1 text-sm">
-              GuildMembers is a privileged intent. Turn it on in the Developer Portal first.
-            </p>
-          </TabItem>
-          <TabItem label="REST">
-            <Code code={rest} lang="ts" />
-            <p class="mt-3 font-mono text-sm">
-              <span class="text-(--sl-color-text-accent)">my-bot</span> Joined 2026-11-04T15:21:52.481000+00:00
-            </p>
-          </TabItem>
-        </Tabs>
+
+      <div class="min-w-0">
+        <button
+          class="flex w-full items-center gap-3 rounded-2xl border border-line-strong bg-surface px-4 py-4 text-left font-mono text-lg hover:border-accent"
+          data-slash-open
+        >
+          <span class="text-accent">/</span>
+          <span class="text-muted">where to start</span>
+          <span class="h-5 w-0.5 animate-pulse bg-accent motion-reduce:animate-none" aria-hidden="true"></span>
+          <span class="ms-auto rounded-md border border-line px-1.5 text-xs text-faint">press /</span>
+        </button>
+        <ul class="mt-2 overflow-hidden rounded-2xl border border-line bg-surface">
+          {
+            jumps.map((jump, i) => (
+              <li class:list={[i > 0 && 'border-t border-line']}>
+                <a class="group flex flex-wrap items-baseline gap-x-4 px-4 py-3 hover:bg-raised" href={jump.href}>
+                  <code class="min-w-40 font-mono text-sm text-text group-hover:text-accent">/{jump.cmd}</code>
+                  <span class="text-sm text-faint">{jump.hint}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
       </div>
     </section>
 
-    <section class:list={['border-b', rule]}>
-      <div class:list={['grid border-b md:grid-cols-(--grid-head)', rule]}>
-        <h2
-          class:list={[
-            'font-display p-4 text-2xl font-bold font-stretch-semi-condensed text-(--sl-color-white) md:border-r',
-            rule,
-          ]}
-        >
-          How a bot runs
+    <section class="py-10" aria-labelledby="see">
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <h2 id="see" class="text-3xl font-bold tracking-tight">
+          <span class="text-accent">/</span> what you write, what the chat shows
         </h2>
-        <p class="p-4">
-          One Worker answers interactions. A Durable Object holds the gateway connection, so events
-          reach the same handlers without a public URL.
-        </p>
-      </div>
-      <div class="grid md:grid-cols-3">
-        <div class:list={['border-b p-4 md:border-r md:border-b-0', rule]}>
-          <h3 class="font-display text-lg font-bold text-(--sl-color-white)">Discord</h3>
-          <p class="font-mono text-sm text-(--sl-color-text-accent)">interactions, events</p>
-          <p class="mt-2 text-sm">
-            Sends slash commands, clicks and form submits, and gateway events such as member joins.
-          </p>
-        </div>
-        <div class:list={['border-b p-4 md:border-r md:border-b-0', rule]}>
-          <h3 class="font-display text-lg font-bold text-(--sl-color-white)">Worker</h3>
-          <p class="font-mono text-sm text-(--sl-color-text-accent)">bot()</p>
-          <p class="mt-2 text-sm">
-            Checks the Ed25519 signature, runs the matching handler and returns the answer.
-          </p>
-        </div>
-        <div class="p-4">
-          <h3 class="font-display text-lg font-bold text-(--sl-color-white)">Durable Object</h3>
-          <p class="font-mono text-sm text-(--sl-color-text-accent)">gateway()</p>
-          <p class="mt-2 text-sm">
-            Keeps the WebSocket open, resumes after a drop, and passes interactions to <code
-              class="font-mono">bot()</code
-            >.
-          </p>
+        <div class="flex gap-1 rounded-xl border border-line bg-surface p-1 font-mono text-sm" role="tablist">
+          {
+            examples.map((ex, i) => (
+              <button
+                class="rounded-lg px-3 py-1.5 text-muted aria-selected:bg-raised aria-selected:text-text"
+                role="tab"
+                id={`tab-${ex.id}`}
+                aria-controls={`panel-${ex.id}`}
+                aria-selected={i === 0 ? 'true' : 'false'}
+                data-tab
+              >
+                {ex.label}
+              </button>
+            ))
+          }
         </div>
       </div>
-      <div class:list={['grid border-t text-sm md:grid-cols-2', rule]}>
-        <p class:list={['border-b p-4 md:border-r md:border-b-0', rule]}>
-          <code class="font-mono text-(--sl-color-white)">POST /</code> over HTTP, for bots with an Interactions
-          Endpoint URL.
+      {
+        examples.map((ex, i) => (
+          <div
+            class="mt-5 grid gap-3 lg:grid-cols-(--example-cols)"
+            role="tabpanel"
+            id={`panel-${ex.id}`}
+            aria-labelledby={`tab-${ex.id}`}
+            hidden={i !== 0}
+          >
+            <div class="min-w-0">
+              <Code code={ex.code} lang="ts" />
+            </div>
+            <div class="flex flex-col gap-3 rounded-xl border border-line bg-surface p-5 font-mono text-sm">
+              <p class="text-xs text-faint">chat</p>
+              <p>
+                <span class="font-semibold text-text">you</span> <span class="text-faint">›</span>{' '}
+                <span class="text-muted">{ex.you}</span>
+              </p>
+              <p>
+                <span class="font-semibold text-accent">my-bot</span> <span class="text-faint">›</span>{' '}
+                <span class="text-text">{ex.bot}</span>
+              </p>
+              <p class="mt-auto text-xs text-faint">{ex.note}</p>
+            </div>
+          </div>
+        ))
+      }
+    </section>
+
+    <section class="py-10" aria-labelledby="runs">
+      <h2 id="runs" class="text-3xl font-bold tracking-tight"><span class="text-accent">/</span> how a bot runs</h2>
+      <p class="mt-3 max-w-2xl text-muted">
+        One Worker answers interactions. A Durable Object holds the gateway connection, so events reach
+        the same handlers without a public URL.
+      </p>
+      <ol class="mt-6 grid gap-3 md:grid-cols-3">
+        {
+          path.map((step) => (
+            <li class="rounded-2xl border border-line p-5">
+              <h3 class="text-xl font-bold">{step.name}</h3>
+              <code class="font-mono text-sm text-accent">{step.code}</code>
+              <p class="mt-3 text-sm text-muted">{step.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+      <div class="mt-3 grid gap-3 font-mono text-sm md:grid-cols-2">
+        <p class="rounded-xl bg-surface px-4 py-3 text-muted">
+          <span class="text-text">POST /</span> over HTTP, for bots with an Interactions Endpoint URL.
         </p>
-        <p class="p-4">
-          <code class="font-mono text-(--sl-color-white)">wss://gateway.discord.gg</code> from the Durable
-          Object, for bots that need events.
+        <p class="rounded-xl bg-surface px-4 py-3 text-muted">
+          <span class="text-text">wss://gateway.discord.gg</span> from the Durable Object, for bots that need events.
         </p>
       </div>
     </section>
 
-    <section class:list={['border-b', rule]}>
-      <div class:list={['grid border-b md:grid-cols-(--grid-head)', rule]}>
-        <h2
-          class:list={[
-            'font-display p-4 text-2xl font-bold font-stretch-semi-condensed text-(--sl-color-white) md:border-r',
-            rule,
-          ]}
-        >
-          Gateway or HTTP
-        </h2>
-        <p class="p-4">Pick one per bot. Both run the same handlers.</p>
-      </div>
-      <table class="w-full border-collapse text-sm">
-        <thead class="text-left text-(--sl-color-white)">
-          <tr class:list={['border-b', rule]}>
-            <th class:list={['w-56 p-3 md:border-r', rule]}></th>
-            <th class="p-3">Gateway</th>
-            <th class="p-3">HTTP</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class:list={['border-b', rule]}>
-            <td class:list={['p-3 md:border-r', rule]}>Commands, buttons, menus, modals</td>
-            <td class="p-3">Yes</td>
-            <td class="p-3">Yes</td>
-          </tr>
-          <tr class:list={['border-b', rule]}>
-            <td class:list={['p-3 md:border-r', rule]}>Events, such as member joins</td>
-            <td class="p-3">Yes</td>
-            <td class="p-3">No</td>
-          </tr>
-          <tr class:list={['border-b', rule]}>
-            <td class:list={['p-3 md:border-r', rule]}>Needs a public URL</td>
-            <td class="p-3">No</td>
-            <td class="p-3">Yes, the Interactions Endpoint URL</td>
-          </tr>
-          <tr>
-            <td class:list={['p-3 md:border-r', rule]}>Durable Object time</td>
-            <td class="p-3">About 11,000 GB-s a day</td>
-            <td class="p-3">None</td>
-          </tr>
-        </tbody>
-      </table>
-      <p class:list={['border-t p-3 text-sm text-(--sl-color-gray-3)', rule]}>
-        Workers Free includes 13,000 GB-s a day, enough for one gateway bot. Source: <a
-          class="text-(--sl-color-text-accent)"
-          href="https://developers.cloudflare.com/durable-objects/platform/pricing/"
-          >Durable Objects pricing</a
-        >.
-      </p>
-    </section>
-
-    <section class:list={['border-b', rule]}>
-      <div class:list={['grid border-b md:grid-cols-(--grid-head)', rule]}>
-        <h2
-          class:list={[
-            'font-display p-4 text-2xl font-bold font-stretch-semi-condensed text-(--sl-color-white) md:border-r',
-            rule,
-          ]}
-        >
-          Typed from the spec
-        </h2>
-        <p class="p-4">
-          Every route, path value, query, body and result comes from <a
-            class="text-(--sl-color-text-accent)"
-            href="https://github.com/discord/discord-api-spec">discord/discord-api-spec</a
-          >.
+    <section class="grid gap-10 py-10 lg:grid-cols-2" aria-labelledby="pick">
+      <div class="min-w-0">
+        <h2 id="pick" class="text-3xl font-bold tracking-tight"><span class="text-accent">/</span> gateway or HTTP</h2>
+        <p class="mt-3 text-muted">Pick one per bot. Both run the same handlers.</p>
+        <table class="mt-6 w-full border-collapse text-sm">
+          <thead class="text-left">
+            <tr class="border-b border-line-strong">
+              <th class="py-2 pr-4"><span class="sr-only">Feature</span></th>
+              <th class="py-2 pr-4 font-mono">gateway</th>
+              <th class="py-2 font-mono">http</th>
+            </tr>
+          </thead>
+          <tbody class="text-muted">
+            {
+              compare.map(([what, gw, http]) => (
+                <tr class="border-b border-line">
+                  <td class="py-2.5 pr-4 text-text">{what}</td>
+                  <td class="py-2.5 pr-4">{gw}</td>
+                  <td class="py-2.5">{http}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+        <p class="mt-3 text-sm text-faint">
+          Workers Free includes 13,000 GB-s a day, enough for one gateway bot. Source:{' '}
+          <a class="underline underline-offset-4 hover:text-text" href="https://developers.cloudflare.com/durable-objects/platform/pricing/">Durable Objects pricing</a>.
         </p>
       </div>
-      <div class="p-4">
-        <Code code={typed} lang="ts" />
+      <div class="min-w-0">
+        <h2 class="text-3xl font-bold tracking-tight"><span class="text-accent">/</span> typed from the spec</h2>
+        <p class="mt-3 text-muted">
+          Every route, path value, query, body and result comes from{' '}
+          <a class="text-accent underline underline-offset-4" href="https://github.com/discord/discord-api-spec">discord/discord-api-spec</a>.
+        </p>
+        <div class="mt-6"><Code code={typed} lang="ts" /></div>
+        <p class="mt-3 text-sm text-faint">
+          157 paths, generated from commit <code class="font-mono">4e75626</code>. On a 429,{' '}
+          <code class="font-mono">rest</code> waits for <code class="font-mono">retry_after</code> and tries
+          again, up to three tries.
+        </p>
       </div>
-      <p class:list={['border-t p-4 text-sm', rule]}>
-        The types cover 157 paths, generated from commit <code class="font-mono">4e75626</code> of
-        the spec. When Discord adds a route, <code class="font-mono">bun run gen:routes</code> brings it
-        in. On a 429, <code class="font-mono">rest</code> waits for <code class="font-mono"
-          >retry_after</code
-        > and tries again, up to three tries.
-      </p>
     </section>
+  </main>
 
-    <footer class="grid text-sm text-(--sl-color-gray-3) md:grid-cols-(--grid-footer)">
-      <p class:list={['border-b p-3 md:border-b-0', rule]}>
-        botflare is an unofficial library. It is not affiliated with Discord Inc. or Cloudflare, Inc.
-      </p>
-      <p class:list={['p-3 md:border-l', rule]}>
-        MIT · <a class="text-(--sl-color-text-accent)" href="https://github.com/pyyupsk/botflare"
-          >GitHub</a
-        > · <a class="text-(--sl-color-text-accent)" href="https://www.npmjs.com/package/botflare"
-          >npm</a
-        >
-      </p>
-    </footer>
-  </div>
-</StarlightPage>
+  <footer class="mx-auto mt-10 flex max-w-6xl flex-wrap justify-between gap-3 border-t border-line px-4 py-6 text-sm text-faint sm:px-6">
+    <p>botflare is an unofficial library. It is not affiliated with Discord Inc. or Cloudflare, Inc.</p>
+    <p>
+      MIT · <a class="hover:text-text" href="https://github.com/pyyupsk/botflare">GitHub</a> ·{' '}
+      <a class="hover:text-text" href="https://www.npmjs.com/package/botflare">npm</a>
+    </p>
+  </footer>
+</Shell>
 
 <style is:global>
-  .main-frame .sl-container {
-    max-width: none;
-  }
-
-  /* The page draws its own title in the hero. */
-  .main-frame .content-panel:has(#_top) {
-    display: none;
-  }
-
   :root {
-    --grid-hero: minmax(0, 22rem) minmax(0, 1fr);
-    --grid-head: minmax(0, 14rem) minmax(0, 1fr);
-    --grid-footer: minmax(0, 1fr) auto;
+    --example-cols: minmax(0, 1.6fr) minmax(0, 1fr);
   }
 </style>
+
+<script>
+  const tabs = [...document.querySelectorAll<HTMLButtonElement>('[data-tab]')];
+  for (const tab of tabs) {
+    tab.addEventListener('click', () => {
+      for (const other of tabs) {
+        const on = other === tab;
+        other.setAttribute('aria-selected', String(on));
+        document.getElementById(other.getAttribute('aria-controls') ?? '')?.toggleAttribute('hidden', !on);
+      }
+    });
+  }
+</script>
