@@ -65,4 +65,19 @@ gateway({
 - Discord compresses the connection with zlib-stream, so a bot in many servers gets less data. You do not need the `nodejs_compat` flag for it.
 - A Durable Object alarm checks the connection every minute and opens it again if it is down.
 - If Discord closes the connection for a reason that a retry cannot fix, such as a wrong token or an intent that is not turned on, the Durable Object stops.
+
+To know when the bot goes offline, pass `onClose`. It gets the close `code`, the `reason`, and `next`, which is `resume`, `identify` or `stop`. `stop` means the bot stays offline until you fix the cause and deploy again:
+
+```ts
+gateway({
+  intents: ['Guilds'],
+  events: {},
+  onClose: ({ code, reason, next }) => {
+    if (next === 'stop') console.error(`gateway stopped: ${code} ${reason}`);
+  },
+});
+```
+
+If `onClose` throws, `onError` gets the error with `where` set to `close`.
+
 - One connection uses about 11,000 GB-s of Durable Object time per day. See [Deploy](/botflare/guides/deploy/) for the plan limits.

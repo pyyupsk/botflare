@@ -29,6 +29,19 @@ export type EventContext = {
   storage: DurableObjectStorage;
 };
 
+/** What `onClose` gets when Discord closes the connection. */
+export type Close = {
+  /** The WebSocket close code, such as `4004` for a wrong token. */
+  code: number;
+  /** The close reason that Discord sends, or an empty string. */
+  reason: string;
+  /**
+   * What the Durable Object does next. `stop` means a retry cannot fix the close, so the bot stays
+   * offline until you fix the cause and deploy again.
+   */
+  next: 'resume' | 'identify' | 'stop';
+};
+
 type GatewayConfig = {
   /**
    * The names of the gateway intents the bot needs, such as `'GuildMessages'`. Turn on privileged
@@ -44,6 +57,11 @@ type GatewayConfig = {
   bot?: Pick<Bot, 'answer'>;
   /** Gets errors from event handlers and from answering interactions. */
   onError?: ErrorHandler;
+  /**
+   * Runs when Discord closes the connection, with the close code and what the Durable Object does
+   * next. Use it to report a bot that goes offline, because `next: 'stop'` makes no other sound.
+   */
+  onClose?: (close: Close) => unknown;
   /**
    * A handler per dispatch event name, such as `MESSAGE_CREATE`. `c.send` posts a message to a
    * channel, with optional `buttons` and `embeds`. `c.storage` keeps state between events.
@@ -191,8 +209,18 @@ export function gateway(
       ws.addEventListener('close', (event) => {
         if (this.ws !== ws) return;
 
+        const next = afterClose(event.code);
         this.drop();
-        this.after(afterClose(event.code));
+        this.after(next);
+
+        const report = async () => {
+          try {
+            await config.onClose?.({ code: event.code, reason: event.reason, next });
+          } catch (error) {
+            await config.onError?.(error, 'close');
+          }
+        };
+        this.ctx.waitUntil(report());
       });
     }
 

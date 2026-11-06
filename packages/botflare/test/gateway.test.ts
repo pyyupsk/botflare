@@ -1,7 +1,7 @@
 import type { GatewayMessageCreateDispatchData } from 'discord-api-types/v10';
 import { expectTypeOf, it } from 'vitest';
 
-import { gateway } from '#gateway';
+import { type Close, gateway } from '#gateway';
 
 it('types each event handler from the event name', () => {
   gateway({
@@ -13,6 +13,17 @@ it('types each event handler from the event name', () => {
       },
       // @ts-expect-error
       NOT_AN_EVENT: () => {},
+    },
+  });
+});
+
+it('hands onClose the close code and what happens next', () => {
+  gateway({
+    intents: ['Guilds'],
+    events: {},
+    onClose: (close) => {
+      expectTypeOf(close).toEqualTypeOf<Close>();
+      expectTypeOf(close.next).toEqualTypeOf<'resume' | 'identify' | 'stop'>();
     },
   });
 });
