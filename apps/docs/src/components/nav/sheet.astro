@@ -102,10 +102,12 @@ const onApi = path.startsWith(`${base}/api/`);
     </div>
   </div>
 
-  <div class="flex items-center gap-2 border-t border-line px-5 py-3 pb-(--sheet-safe) text-sm">
+  <div class="flex items-center gap-2 border-t border-line px-5 pt-3 pb-(--sheet-safe) text-sm">
     <a class="rounded-xl px-3 py-2 text-muted" href="https://github.com/pyyupsk/botflare/tree/main/examples">Examples</a>
     <a class="rounded-xl px-3 py-2 text-muted" href="https://github.com/pyyupsk/botflare">GitHub</a>
-    <button class="ms-auto rounded-xl border border-line px-3 py-2 font-mono text-xs text-muted" data-theme-toggle>
+    <button class="ms-auto flex items-center gap-2 rounded-xl border border-line px-3 py-2 font-mono text-xs text-muted" data-theme-toggle>
+      <svg class="hidden dark:block" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+      <svg class="dark:hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path></svg>
       <span class="hidden dark:inline">light mode</span><span class="dark:hidden">dark mode</span>
     </button>
   </div>
@@ -116,7 +118,6 @@ const onApi = path.startsWith(`${base}/api/`);
     --sheet-height: 85dvh;
     --sheet-safe: max(0.75rem, env(safe-area-inset-bottom));
   }
-
 </style>
 
 <script>
