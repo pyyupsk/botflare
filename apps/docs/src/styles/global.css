@@ -12,11 +12,16 @@
   --line-strong: #cbc6d3;
   --text: #17151a;
   --muted: #231f2a;
-  --faint: #746e7b;
+  --faint: #726c79;
   --accent: #297b00;
   --accent-fill: #c6f432;
   --accent-ink: #17151a;
   --string: #a3326a;
+  --glass-bar: rgb(246 245 248 / 0.94);
+  --glass-panel: rgb(246 245 248 / 0.85);
+  --glass-shine: rgb(255 255 255 / 0.9);
+  --glass-rim: rgb(23 21 26 / 0.08);
+  --glass-shadow: rgb(23 21 26 / 0.18);
 }
 
 [data-theme='dark'] {
@@ -33,6 +38,11 @@
   --accent-fill: #c6f432;
   --accent-ink: #17151a;
   --string: #f5a6c7;
+  --glass-bar: rgb(23 21 26 / 0.94);
+  --glass-panel: rgb(23 21 26 / 0.85);
+  --glass-shine: rgb(255 255 255 / 0.08);
+  --glass-rim: rgb(255 255 255 / 0.1);
+  --glass-shadow: rgb(0 0 0 / 0.5);
 }
 
 @theme inline {
@@ -50,6 +60,31 @@
   --color-accent-fill: var(--accent-fill);
   --color-accent-ink: var(--accent-ink);
   --color-string: var(--string);
+}
+
+@utility glass-bar {
+  background: var(--glass-bar);
+  box-shadow:
+    inset 0 1px 0 var(--glass-shine),
+    inset 0 -1px 0 var(--line);
+  backdrop-filter: blur(20px) saturate(1.6);
+
+  @supports not (backdrop-filter: blur(1px)) {
+    background: var(--bg);
+  }
+}
+
+@utility glass-panel {
+  background: var(--glass-panel);
+  box-shadow:
+    inset 0 1px 0 var(--glass-shine),
+    inset 0 0 0 1px var(--glass-rim),
+    0 24px 48px -16px var(--glass-shadow);
+  backdrop-filter: blur(28px) saturate(1.8);
+
+  @supports not (backdrop-filter: blur(1px)) {
+    background: var(--bg);
+  }
 }
 
 @layer base {
