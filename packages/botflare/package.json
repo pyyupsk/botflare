@@ -29,6 +29,7 @@
   ],
   "type": "module",
   "sideEffects": false,
+  "types": "./dist/index.d.mts",
   "imports": {
     "#test/*": "./test/*.ts",
     "#*": "./src/*.ts"
