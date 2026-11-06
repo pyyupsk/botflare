@@ -111,6 +111,11 @@
   }
 }
 
+:root {
+  --search-max: min(92%, 36rem);
+  --search-min: 18rem;
+}
+
 #slash,
 #menu,
 #slash::backdrop,
