@@ -165,8 +165,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   });
 
   const hint = document.querySelector<HTMLElement>('[data-slash-hint]');
-  if (hint && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  const cycles = matchMedia('(min-width: 40rem) and (prefers-reduced-motion: no-preference)');
+  if (hint && cycles.matches) {
     const samples = ['answers defer', 'rest', 'gateway events', 'modal', 'buttons and menus', 'cron jobs'];
+    hint.textContent = samples[0] ?? '';
     let n = 0;
     setInterval(() => {
       n = (n + 1) % samples.length;
