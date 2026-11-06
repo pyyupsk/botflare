@@ -110,19 +110,19 @@ const compare = [
 
       <div class="min-w-0">
         <button
-          class="flex w-full items-center gap-3 rounded-2xl border border-line-strong bg-surface px-4 py-4 text-left font-mono text-lg hover:border-accent"
+          class="flex w-full items-center gap-3 rounded-2xl border border-line-strong px-4 py-4 text-left font-mono text-lg hover:border-accent"
           data-slash-open
         >
-          <span class="text-accent">/</span>
+          <span class="text-accent" aria-hidden="true">/</span>
           <span class="text-muted">where to start</span>
           <span class="h-5 w-0.5 animate-pulse bg-accent motion-reduce:animate-none" aria-hidden="true"></span>
           <span class="ms-auto rounded-md border border-line px-1.5 text-xs text-faint">press /</span>
         </button>
-        <ul class="mt-2 overflow-hidden rounded-2xl border border-line bg-surface">
+        <ul class="mt-2 overflow-hidden rounded-2xl border border-line">
           {
             jumps.map((jump, i) => (
               <li class:list={[i > 0 && 'border-t border-line']}>
-                <a class="group flex flex-wrap items-baseline gap-x-4 px-4 py-3 hover:bg-raised" href={jump.href}>
+                <a class="group flex flex-wrap items-baseline gap-x-4 px-4 py-3" href={jump.href}>
                   <code class="min-w-40 font-mono text-sm text-text group-hover:text-accent">/{jump.cmd}</code>
                   <span class="text-sm text-faint">{jump.hint}</span>
                 </a>
@@ -136,9 +136,9 @@ const compare = [
     <section class="py-10" aria-labelledby="see">
       <div class="flex flex-wrap items-end justify-between gap-4">
         <h2 id="see" class="text-3xl font-bold tracking-tight">
-          <span class="text-accent">/</span> what you write, what the chat shows
+          <span class="text-accent" aria-hidden="true">/</span> what you write, what the chat shows
         </h2>
-        <div class="flex gap-1 rounded-xl border border-line bg-surface p-1 font-mono text-sm" role="tablist">
+        <div class="flex gap-1 rounded-xl border border-line p-1 font-mono text-sm" role="tablist">
           {
             examples.map((ex, i) => (
               <button
@@ -167,7 +167,7 @@ const compare = [
             <div class="min-w-0">
               <Code code={ex.code} lang="ts" />
             </div>
-            <div class="flex flex-col gap-3 rounded-xl border border-line bg-surface p-5 font-mono text-sm">
+            <div class="flex flex-col gap-3 rounded-xl border border-line p-5 font-mono text-sm">
               <p class="text-xs text-faint">chat</p>
               <p>
                 <span class="font-semibold text-text">you</span> <span class="text-faint">›</span>{' '}
@@ -175,7 +175,7 @@ const compare = [
               </p>
               <p>
                 <span class="font-semibold text-accent">my-bot</span> <span class="text-faint">›</span>{' '}
-                <span class="text-text">{ex.bot}</span>
+                <span class="text-muted">{ex.bot}</span>
               </p>
               <p class="mt-auto text-xs text-faint">{ex.note}</p>
             </div>
@@ -185,7 +185,7 @@ const compare = [
     </section>
 
     <section class="py-10" aria-labelledby="runs">
-      <h2 id="runs" class="text-3xl font-bold tracking-tight"><span class="text-accent">/</span> how a bot runs</h2>
+      <h2 id="runs" class="text-3xl font-bold tracking-tight"><span class="text-accent" aria-hidden="true">/</span> how a bot runs</h2>
       <p class="mt-3 max-w-2xl text-muted">
         One Worker answers interactions. A Durable Object holds the gateway connection, so events reach
         the same handlers without a public URL.
@@ -202,10 +202,10 @@ const compare = [
         }
       </ol>
       <div class="mt-3 grid gap-3 font-mono text-sm md:grid-cols-2">
-        <p class="rounded-xl bg-surface px-4 py-3 text-muted">
+        <p class="rounded-xl border border-line px-4 py-3 text-muted">
           <span class="text-text">POST /</span> over HTTP, for bots with an Interactions Endpoint URL.
         </p>
-        <p class="rounded-xl bg-surface px-4 py-3 text-muted">
+        <p class="rounded-xl border border-line px-4 py-3 text-muted">
           <span class="text-text">wss://gateway.discord.gg</span> from the Durable Object, for bots that need events.
         </p>
       </div>
@@ -213,7 +213,7 @@ const compare = [
 
     <section class="grid gap-10 py-10 lg:grid-cols-2" aria-labelledby="pick">
       <div class="min-w-0">
-        <h2 id="pick" class="text-3xl font-bold tracking-tight"><span class="text-accent">/</span> gateway or HTTP</h2>
+        <h2 id="pick" class="text-3xl font-bold tracking-tight"><span class="text-accent" aria-hidden="true">/</span> gateway or HTTP</h2>
         <p class="mt-3 text-muted">Pick one per bot. Both run the same handlers.</p>
         <table class="mt-6 w-full border-collapse text-sm">
           <thead class="text-left">
@@ -241,7 +241,7 @@ const compare = [
         </p>
       </div>
       <div class="min-w-0">
-        <h2 class="text-3xl font-bold tracking-tight"><span class="text-accent">/</span> typed from the spec</h2>
+        <h2 class="text-3xl font-bold tracking-tight"><span class="text-accent" aria-hidden="true">/</span> typed from the spec</h2>
         <p class="mt-3 text-muted">
           Every route, path value, query, body and result comes from{' '}
           <a class="text-accent underline underline-offset-4" href="https://github.com/discord/discord-api-spec">discord/discord-api-spec</a>.

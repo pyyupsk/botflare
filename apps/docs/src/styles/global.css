@@ -11,9 +11,9 @@
   --line: #e1dfe6;
   --line-strong: #cbc6d3;
   --text: #17151a;
-  --muted: #4b4653;
-  --faint: #78727f;
-  --accent: #4f6b00;
+  --muted: #231f2a;
+  --faint: #746e7b;
+  --accent: #297b00;
   --accent-fill: #c6f432;
   --accent-ink: #17151a;
   --string: #a3326a;
@@ -27,8 +27,8 @@
   --line: #2e2a35;
   --line-strong: #3f3a48;
   --text: #ece9f1;
-  --muted: #b9b3c3;
-  --faint: #8b8596;
+  --muted: #857f8f;
+  --faint: #857f8f;
   --accent: #c6f432;
   --accent-fill: #c6f432;
   --accent-ink: #17151a;
@@ -104,7 +104,7 @@
 
   /* A slash before each section, as in a command. */
   & h2::before {
-    content: '/ ';
+    content: '/ ' / '';
     color: var(--accent);
   }
 

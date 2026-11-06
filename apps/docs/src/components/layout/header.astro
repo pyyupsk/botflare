@@ -31,7 +31,7 @@ const links = [
       <span class="text-lg tracking-tight">botflare</span>
     </a>
     <a
-      class="hidden rounded-md bg-raised px-1.5 font-mono text-xs text-faint hover:text-text sm:block"
+      class="hidden rounded-md border border-line px-1.5 font-mono text-xs text-faint hover:text-text sm:block"
       href="https://github.com/pyyupsk/botflare/releases">v{version}</a
     >
 
@@ -50,11 +50,11 @@ const links = [
     </nav>
 
     <button
-      class="ms-auto flex h-10 min-w-0 items-center gap-2 rounded-xl border border-line bg-surface px-3 font-mono text-sm text-faint hover:border-line-strong sm:w-72"
+      class="ms-auto flex h-10 min-w-0 items-center gap-2 rounded-xl border border-line px-3 font-mono text-sm text-faint hover:border-line-strong sm:w-72"
       data-slash-open
       aria-label="Search the docs"
     >
-      <span class="text-accent">/</span>
+      <span class="text-accent" aria-hidden="true">/</span>
       <span class="truncate" data-slash-hint>answers defer</span>
       <kbd class="ms-auto hidden rounded-md border border-line px-1.5 text-xs sm:block">/</kbd>
     </button>
