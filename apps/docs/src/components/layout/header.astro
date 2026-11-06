@@ -83,8 +83,15 @@ const links = [
   for (const toggle of document.querySelectorAll('[data-theme-toggle]')) {
     toggle.addEventListener('click', () => {
       const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+
+      const still = document.createElement('style');
+      still.textContent = '*,*::before,*::after,*::backdrop{transition:none!important}';
+      document.head.append(still);
+
       document.documentElement.dataset.theme = next;
       localStorage.setItem('theme', next);
+
+      requestAnimationFrame(() => requestAnimationFrame(() => still.remove()));
     });
   }
 </script>
