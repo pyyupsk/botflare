@@ -1,6 +1,8 @@
 ---
 import '#styles/global.css';
 
+import { Font } from 'astro:assets';
+
 import Header from '#components/layout/header.astro';
 import Slash from '#components/search/slash.astro';
 import { nav } from '#lib/nav';
@@ -25,6 +27,8 @@ const fullTitle = title === 'botflare' ? title : `${title} · botflare`;
     <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
     <link rel="icon" href={`${base}/favicon.svg`} type="image/svg+xml" />
     <link rel="sitemap" href={`${base}/sitemap-index.xml`} />
+    <Font cssVariable="--font-bricolage" preload />
+    <Font cssVariable="--font-spline" preload />
     <script is:inline>
       document.documentElement.dataset.theme =
         localStorage.getItem('theme') ??

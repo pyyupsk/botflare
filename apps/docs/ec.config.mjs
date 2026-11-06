@@ -5,6 +5,7 @@ export default defineEcConfig({
   themes: ['vitesse-dark', 'vitesse-light'],
   themeCssSelector: (theme) => `[data-theme='${theme.type}']`,
   useDarkModeMediaQuery: false,
+  emitExternalStylesheet: false,
   styleOverrides: {
     borderRadius: '0.75rem',
     borderColor: 'var(--line)',

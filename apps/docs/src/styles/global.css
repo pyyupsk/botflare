@@ -1,6 +1,4 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/bricolage-grotesque';
-@import '@fontsource-variable/spline-sans-mono';
 
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
@@ -38,8 +36,8 @@
 }
 
 @theme inline {
-  --font-sans: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'Spline Sans Mono Variable', ui-monospace, monospace;
+  --font-sans: var(--font-bricolage);
+  --font-mono: var(--font-spline);
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-raised: var(--raised);
