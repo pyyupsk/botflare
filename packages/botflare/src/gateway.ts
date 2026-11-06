@@ -10,6 +10,7 @@ import type {
 import type { Bot } from '#bot';
 import { interactionCallback, type Send, sendMessage } from '#lib/discord';
 import type { ErrorHandler } from '#types';
+import { inflater } from '#utils/inflate';
 import { type Intent, intentBits } from '#utils/intents';
 import { afterClose, type Session, Shard } from '#utils/shard';
 
@@ -84,6 +85,7 @@ export function gateway(
   return class Gateway extends DurableObject<{ DISCORD_TOKEN: string }> {
     private ws: WebSocket | undefined;
     private shard: Shard | undefined;
+    private inflate: ReturnType<typeof inflater> | undefined;
     private stopped = false;
 
     async ensure(): Promise<void> {
@@ -102,19 +104,21 @@ export function gateway(
       const stored = this.ctx.storage.kv.get<Session>('session');
       const saved = stored?.intents === identity.intents ? stored : null;
 
-      const ws = new WebSocket(`${saved?.url ?? GATEWAY}/?v=10&encoding=json`);
+      const ws = new WebSocket(`${saved?.url ?? GATEWAY}/?v=10&encoding=json&compress=zlib-stream`);
       const send: Send = (channelId, content, options) =>
         sendMessage(this.env.DISCORD_TOKEN, channelId, content, options);
 
+      const reconnect = (resume: boolean): void => {
+        if (this.ws !== ws) return;
+
+        this.drop();
+        ws.close(4000);
+        this.after(resume ? 'resume' : 'identify');
+      };
+
       const shard = new Shard(this.env.DISCORD_TOKEN, identity, saved, {
         send: (payload) => ws.send(JSON.stringify(payload)),
-        reconnect: (resume) => {
-          if (this.ws !== ws) return;
-
-          this.drop();
-          ws.close(4000);
-          this.after(resume ? 'resume' : 'identify');
-        },
+        reconnect,
         save: (session) =>
           session
             ? this.ctx.storage.kv.put('session', session)
@@ -169,11 +173,20 @@ export function gateway(
         },
       });
 
+      const inflate = inflater(
+        (json) => {
+          if (this.ws === ws) shard.handle(JSON.parse(json) as GatewayReceivePayload);
+        },
+        () => reconnect(true),
+      );
+
       this.ws = ws;
       this.shard = shard;
+      this.inflate = inflate;
 
+      ws.binaryType = 'arraybuffer';
       ws.addEventListener('message', (event) => {
-        if (this.ws === ws) shard.handle(JSON.parse(String(event.data)) as GatewayReceivePayload);
+        if (this.ws === ws) inflate.push(event.data as ArrayBuffer);
       });
       ws.addEventListener('close', (event) => {
         if (this.ws !== ws) return;
@@ -186,6 +199,8 @@ export function gateway(
     private drop(): void {
       this.shard?.stop();
       this.shard = undefined;
+      this.inflate?.close();
+      this.inflate = undefined;
       this.ws = undefined;
     }
 
