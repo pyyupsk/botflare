@@ -7,7 +7,7 @@ import SocialIcons from '@astrojs/starlight/components/SocialIcons.astro';
 import ThemeSelect from '@astrojs/starlight/components/ThemeSelect.astro';
 
 const links = [
-  { label: 'Guides', href: '/guides/getting-started/', active: Astro.url.pathname.startsWith('/guides/') },
+  { label: 'Guides', href: `${import.meta.env.BASE_URL}/guides/getting-started/`, active: Astro.url.pathname.includes('/guides/') },
   { label: 'Examples', href: 'https://github.com/pyyupsk/botflare/tree/main/examples', active: false },
 ];
 ---

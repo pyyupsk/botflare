@@ -32,7 +32,7 @@ export default bot({
 ```
 
 - The key must match the expression in `triggers.crons` exactly.
-- `c.send(channelId, text, options)` posts with `DISCORD_TOKEN`. It takes the same [message options](/guides/answers/#message-options) as `reply`, and returns an `Error` if Discord refuses.
+- `c.send(channelId, text, options)` posts with `DISCORD_TOKEN`. It takes the same [message options](/botflare/guides/answers/#message-options) as `reply`, and returns an `Error` if Discord refuses.
 - `c.controller` is the `ScheduledController` from Cloudflare, with `scheduledTime` and `cron`.
 - If the bot has a `gateway`, every Cron Trigger also starts the gateway connection when it is down.
 

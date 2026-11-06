@@ -29,9 +29,9 @@ export default app;
 ```
 
 - The keys of `events` are gateway event names, such as `MESSAGE_CREATE` and `GUILD_MEMBER_ADD`. Each handler gets the event data with its type from discord-api-types.
-- `c.send(channelId, text, options)` posts a message. It takes the same [message options](/guides/answers/#message-options) as `reply`, and returns an `Error` if Discord refuses.
+- `c.send(channelId, text, options)` posts a message. It takes the same [message options](/botflare/guides/answers/#message-options) as `reply`, and returns an `Error` if Discord refuses.
 - `c.storage` is the storage of the Durable Object, for state that lasts between events, such as `c.storage.kv.put('joined', count)`. The connection keeps its session under the `session` key, so use other keys.
-- The Worker setup, the binding and the first start are in [Getting started](/guides/getting-started/) and [Deploy](/guides/deploy/).
+- The Worker setup, the binding and the first start are in [Getting started](/botflare/guides/getting-started/) and [Deploy](/botflare/guides/deploy/).
 
 ## Intents
 
@@ -65,4 +65,4 @@ gateway({
 - The Durable Object resumes the session after a drop, so it does not miss events.
 - A Durable Object alarm checks the connection every minute and opens it again if it is down.
 - If Discord closes the connection for a reason that a retry cannot fix, such as a wrong token or an intent that is not turned on, the Durable Object stops.
-- One connection uses about 11,000 GB-s of Durable Object time per day. See [Deploy](/guides/deploy/) for the plan limits.
+- One connection uses about 11,000 GB-s of Durable Object time per day. See [Deploy](/botflare/guides/deploy/) for the plan limits.

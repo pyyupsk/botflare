@@ -13,7 +13,7 @@ Discord waits 3 seconds for the first answer to an interaction. A handler return
 | `c.defer(work, { ephemeral })` | "Thinking…", then the result of `work`. Use it for work that takes over 3 seconds. |
 | `c.update(text, options)`      | Buttons and menus only: the message of the button or menu, edited.                 |
 | `c.deferUpdate(work)`          | Buttons and menus only: the same message, then edited with the result of `work`.   |
-| `c.modal(form, value)`         | A form in a popup. See [Modals](/guides/modals/).                                  |
+| `c.modal(form, value)`         | A form in a popup. See [Modals](/botflare/guides/modals/).                         |
 
 ## Message options
 
@@ -31,8 +31,8 @@ c.reply('Report ready', {
 | Option            | What it does                                                                      |
 | ----------------- | --------------------------------------------------------------------------------- |
 | `embeds`          | Embeds, with the fields that Discord accepts.                                     |
-| `buttons`         | Buttons. See [Buttons and menus](/guides/components/).                            |
-| `selects`         | Select menus. See [Buttons and menus](/guides/components/).                       |
+| `buttons`         | Buttons. See [Buttons and menus](/botflare/guides/components/).                   |
+| `selects`         | Select menus. See [Buttons and menus](/botflare/guides/components/).              |
 | `files`           | Files to attach. Each has a `name`, `data` and an optional `description`.         |
 | `allowedMentions` | Who the message can ping. See below.                                              |
 | `ephemeral`       | `reply` and `defer` only. Shows the message to the user who ran the command only. |
