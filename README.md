@@ -19,7 +19,7 @@ Build Discord bots that run on Cloudflare Workers, with types from the official 
 
 - ⚡ Slash commands, subcommands, context menus, buttons, select menus, modals and autocomplete
 - 🧠 Option values typed from the options you declare. A `choices` option gives only its values
-- 🔌 The Discord Gateway in a Durable Object, so a bot gets events without a public URL
+- 🔌 The Discord Gateway in a Durable Object, compressed, so a bot gets events without a public URL
 - 🛰️ `rest` for every Discord route, with path, query, body and result typed from the spec
 - ⏰ Cron jobs that post to channels
 - 🔕 Messages ping nobody unless you allow it, even for `@everyone` in the text

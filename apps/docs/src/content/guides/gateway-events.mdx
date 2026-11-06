@@ -62,6 +62,7 @@ gateway({
 ## The connection
 
 - The Durable Object resumes the session after a drop, so it does not miss events.
+- Discord compresses the connection with zlib-stream, so a bot in many servers gets less data. You do not need the `nodejs_compat` flag for it.
 - A Durable Object alarm checks the connection every minute and opens it again if it is down.
 - If Discord closes the connection for a reason that a retry cannot fix, such as a wrong token or an intent that is not turned on, the Durable Object stops.
 - One connection uses about 11,000 GB-s of Durable Object time per day. See [Deploy](/botflare/guides/deploy/) for the plan limits.
