@@ -36,6 +36,20 @@
   "peerDependencies": {
     "typescript": "~6.0.3"
   },
+  "changelogithub": {
+    "commitFilterByPaths": [
+      "packages/botflare/src",
+      "packages/botflare/cli",
+      "packages/botflare/package.json",
+      "packages/botflare/tsdown.config.ts",
+      "packages/discordflare/src",
+      "packages/discordflare/cli",
+      "packages/discordflare/package.json",
+      "packages/discordflare/tsdown.config.ts",
+      "README.md",
+      "LICENSE"
+    ]
+  },
   "nit": {
     "hooks": {
       "pre-commit": {
