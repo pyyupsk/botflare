@@ -111,6 +111,76 @@
   }
 }
 
+#slash,
+#menu,
+#slash::backdrop,
+#menu::backdrop {
+  transition:
+    opacity 0.2s ease,
+    translate 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    scale 0.2s ease,
+    background-color 0.3s ease,
+    backdrop-filter 0.3s ease,
+    overlay 0.3s allow-discrete,
+    display 0.3s allow-discrete;
+}
+
+#slash {
+  opacity: 0;
+  scale: 0.97;
+  translate: 0 -0.5rem;
+}
+
+#slash[open] {
+  opacity: 1;
+  scale: 1;
+  translate: 0 0;
+
+  @starting-style {
+    opacity: 0;
+    scale: 0.97;
+    translate: 0 -0.5rem;
+  }
+}
+
+#menu {
+  translate: 0 100%;
+}
+
+#menu:popover-open {
+  translate: 0 0;
+
+  @starting-style {
+    translate: 0 100%;
+  }
+}
+
+#slash::backdrop,
+#menu::backdrop {
+  background-color: transparent;
+  backdrop-filter: blur(0);
+}
+
+#slash[open]::backdrop,
+#menu:popover-open::backdrop {
+  background-color: color-mix(in srgb, var(--bg) 70%, transparent);
+  backdrop-filter: blur(8px);
+
+  @starting-style {
+    background-color: transparent;
+    backdrop-filter: blur(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #slash,
+  #menu,
+  #slash::backdrop,
+  #menu::backdrop {
+    transition: none;
+  }
+}
+
 /* Markdown from the guides and from TypeDoc. */
 .prose {
   color: var(--muted);

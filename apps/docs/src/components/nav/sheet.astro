@@ -13,7 +13,7 @@ const onApi = path.startsWith(`${base}/api/`);
 <div
   id="menu"
   popover
-  class="sheet glass-panel inset-x-0 top-auto bottom-0 m-0 flex max-h-(--sheet-height) w-full flex-col rounded-t-3xl p-0 text-text backdrop:bg-bg/70 backdrop:backdrop-blur-sm"
+  class="glass-panel inset-x-0 top-auto bottom-0 m-0 open:flex max-h-(--sheet-height) w-full flex-col rounded-t-3xl p-0 text-text"
   aria-label="Pages"
 >
   <div class="px-5 pt-3 pb-4">
@@ -117,27 +117,6 @@ const onApi = path.startsWith(`${base}/api/`);
     --sheet-safe: max(0.75rem, env(safe-area-inset-bottom));
   }
 
-  .sheet {
-    transition:
-      translate 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
-      overlay 0.3s allow-discrete,
-      display 0.3s allow-discrete;
-    translate: 0 100%;
-  }
-
-  .sheet:popover-open {
-    translate: 0 0;
-
-    @starting-style {
-      translate: 0 100%;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .sheet {
-      transition: none;
-    }
-  }
 </style>
 
 <script>
