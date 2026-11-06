@@ -93,11 +93,16 @@
     color: var(--text);
     font-family: var(--font-sans);
     scroll-padding-top: 5rem;
+    scrollbar-gutter: stable;
   }
 
   ::selection {
     background: var(--accent-fill);
     color: var(--accent-ink);
+  }
+
+  html:has(#menu:popover-open, #slash[open]) {
+    overflow: hidden;
   }
 
   :focus-visible {
